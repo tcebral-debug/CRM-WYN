@@ -721,9 +721,11 @@ function AccountsView({accounts,onBPM}){
 
 // ── ACTIVITIES VIEW ───────────────────────────────────────
 function ActivitiesView({activities,leads}){
-  if(!activities.length)return <EmptyState icon="📋" title="Sin actividades" sub="Registrá desde la vista de Leads"/>
+  const leadIds=new Set(leads.map(l=>l.id))
+  const filtered=activities.filter(a=>leadIds.has(a.lead_id))
+  if(!filtered.length)return <EmptyState icon="📋" title="Sin actividades" sub="Registrá desde la vista de Leads"/>
   return <div style={{display:'flex',flexDirection:'column',gap:10}}>
-    {activities.map(act=>{
+    {filtered.map(act=>{
       const lead=leads.find(l=>l.id===act.lead_id)
       return <Card key={act.id} style={{padding:'12px 16px'}}>
         <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
@@ -1219,7 +1221,7 @@ function CRMApp(){
           {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead}/>}
           {view==='prospects'&&<ProspectsView prospects={fProspects} onEdit={p=>{setEditProspect(p);setShowProspectModal(true)}} onConvert={convertProspectToLead}/>}
           {view==='accounts'&&<AccountsView accounts={fAccounts} onBPM={setBpmEntity}/>}
-          {view==='activities'&&<ActivitiesView activities={activities} leads={leads}/>}
+          {view==='activities'&&<ActivitiesView activities={activities} leads={fLeads}/>}
           {view==='products'&&<ProductsView products={fProducts} isRegional={isRegional} onSave={saveProduct} onDelete={deleteProduct}/>}
           {view==='reports'&&<ReportsView leads={fLeads} accounts={fAccounts}/>}
         </>}
@@ -1257,4 +1259,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>)
 
   
 </html>
-
