@@ -10,11 +10,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0F1117;font-family:'DM Sans',sans-serif;color:#E2E8F0}
+body{background:#0F1117;font-family:'Roboto','DM Sans',sans-serif;color:#E2E8F0}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#0A0D14}
 ::-webkit-scrollbar-thumb{background:#2D3748;border-radius:3px}
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -35,7 +35,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 const { useState, useEffect, useCallback, useContext, createContext } = React
 
 // ── CONSTANTS ─────────────────────────────────────────────
-const COUNTRIES = ["Argentina","Chile","Colombia","Costa Rica","El Salvador","Perú","República Dominicana"]
+const COUNTRIES = ["Regional","Argentina","Chile","Colombia","Costa Rica","El Salvador","Perú","República Dominicana"]
 const PIPELINE_STAGES = ["Primer Contacto","Reunión","Propuesta Enviada","Re-Propuesta","Ganado","Perdido"]
 const TIERS = ["Tier 1","Tier 2","Tier 3","Tier 4"]
 const BPM_TASKS = ["Crear Cliente","Agreement","Tarifas","Integración configurada","Alta operativa","Facturación configurada","Go Live"]
@@ -47,9 +47,9 @@ const INTEGRATION_TYPES = ["API REST","Shopify","WooCommerce","VTEX","Magento","
 const CURRENCIES = ["USD","ARS","CLP","COP","CRC","PEN","DOP"]
 const ACTIVITY_TYPES = ["Llamada","Email","Reunión","Tarea"]
 const LOSS_REASONS = ["Precio","Competidor","Sin respuesta","Timing","Servicio no aplica","Volumen insuficiente","Otro"]
-const STAGE_COLORS = {"Primer Contacto":"#3B82F6","Reunión":"#8B5CF6","Propuesta Enviada":"#F59E0B","Re-Propuesta":"#F97316","Ganado":"#10B981","Perdido":"#EF4444"}
+const STAGE_COLORS = {"Primer Contacto":"#3B82F6","Reunión":"#8B5CF6","Propuesta Enviada":"#F59E0B","Re-Propuesta":"#F97316","Ganado":"#5CBB00","Perdido":"#EF4444"}
 const ACTIVITY_ICONS = {"Llamada":"📞","Email":"📧","Reunión":"🤝","Tarea":"✅"}
-const ACTIVITY_COLORS = {"Llamada":"#3B82F6","Email":"#8B5CF6","Reunión":"#10B981","Tarea":"#F59E0B"}
+const ACTIVITY_COLORS = {"Llamada":"#3B82F6","Email":"#8B5CF6","Reunión":"#5CBB00","Tarea":"#F59E0B"}
 const EXCEL_STATUS_MAP = {'Primer Contacto (Contactado)':'Primer Contacto','Primer Contacto':'Primer Contacto','Reunión (En Proceso / Visitado)':'Reunión','Reunión':'Reunión','Propuesta Enviada':'Propuesta Enviada','Re-Propuesta':'Re-Propuesta','Onboarding':'Ganado','Ganado':'Ganado','Perdido':'Perdido'}
 const STALE_DAYS = 7
 
@@ -57,7 +57,7 @@ const STALE_DAYS = 7
 const stageColor = s => STAGE_COLORS[s] || '#6B7280'
 const fmtNum = n => n != null && n !== '' ? Number(n).toLocaleString('es-AR') : '—'
 const fmtCur = n => n ? `$${Number(n).toLocaleString('es-AR')}` : '—'
-const progressColor = p => p === 100 ? '#10B981' : p >= 50 ? '#F59E0B' : p > 0 ? '#3B82F6' : '#EF4444'
+const progressColor = p => p === 100 ? '#5CBB00' : p >= 50 ? '#F59E0B' : p > 0 ? '#3B82F6' : '#EF4444'
 function tierFromVolumen(vol) {
   const v = parseFloat(vol)||0
   if(v>9999)return'Tier 1';if(v>2500)return'Tier 2';if(v>=500)return'Tier 3';return'Tier 4'
@@ -117,12 +117,48 @@ function AuthProvider({children}){
 }
 const useAuth=()=>useContext(AuthContext)
 
+// ── WYN LOGO ──────────────────────────────────────────────
+function WynLogo({height=40}){
+  const h=height, w=h*3.5
+  return <svg width={w} height={h} viewBox="0 0 280 80" xmlns="http://www.w3.org/2000/svg">
+    {/* W - bold geometric */}
+    <path d="M0 8 L18 72 L36 32 L54 72 L72 8" fill="none" stroke="white" strokeWidth="16" strokeLinecap="square" strokeLinejoin="miter"/>
+    {/* Y - green diagonal shapes (two parallelogram strokes forming a Y) */}
+    <path d="M88 8 L108 40" fill="none" stroke="#5CBB00" strokeWidth="16" strokeLinecap="square"/>
+    <path d="M128 8 L108 40 L108 72" fill="none" stroke="#5CBB00" strokeWidth="16" strokeLinecap="square" strokeLinejoin="miter"/>
+    {/* N - bold geometric */}
+    <path d="M144 72 L144 8 L192 72 L192 8" fill="none" stroke="white" strokeWidth="16" strokeLinecap="square" strokeLinejoin="miter"/>
+    {/* powered by MailAmericas */}
+    <text x="0" y="92" fill="#94A3B8" fontSize="13" fontFamily="Roboto,Arial,sans-serif" fontWeight="300" letterSpacing="0.5">powered by MailAmericas</text>
+  </svg>
+}
+function WynIcon({size=36}){
+  return <svg width={size} height={size} viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+    <rect width="80" height="80" rx="10" fill="#272726"/>
+    {/* W small */}
+    <path d="M6 14 L18 62 L28 36 L38 62 L50 14" fill="none" stroke="white" strokeWidth="9" strokeLinecap="square" strokeLinejoin="miter"/>
+    {/* Y green */}
+    <path d="M55 14 L63 35" fill="none" stroke="#5CBB00" strokeWidth="9" strokeLinecap="square"/>
+    <path d="M71 14 L63 35 L63 62" fill="none" stroke="#5CBB00" strokeWidth="9" strokeLinecap="square" strokeLinejoin="miter"/>
+  </svg>
+}
+function WynLogoSmall({height=24}){
+  const w=height*3.5
+  return <svg width={w} height={height} viewBox="0 0 280 70" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 8 L18 62 L36 28 L54 62 L72 8" fill="none" stroke="white" strokeWidth="14" strokeLinecap="square" strokeLinejoin="miter"/>
+    <path d="M88 8 L108 36" fill="none" stroke="#5CBB00" strokeWidth="14" strokeLinecap="square"/>
+    <path d="M128 8 L108 36 L108 62" fill="none" stroke="#5CBB00" strokeWidth="14" strokeLinecap="square" strokeLinejoin="miter"/>
+    <path d="M144 62 L144 8 L192 62 L192 8" fill="none" stroke="white" strokeWidth="14" strokeLinecap="square" strokeLinejoin="miter"/>
+    <text x="0" y="80" fill="#64748B" fontSize="11" fontFamily="Roboto,Arial,sans-serif" fontWeight="300">powered by MailAmericas</text>
+  </svg>
+}
+
 // ── UI COMPONENTS ─────────────────────────────────────────
 function GreenBtn({onClick,children,small,disabled,style}){
-  return <button onClick={onClick} disabled={disabled} style={{background:disabled?'#1E2535':'linear-gradient(135deg,#10B981,#059669)',color:disabled?'#64748B':'white',border:'none',borderRadius:8,padding:small?'6px 12px':'9px 16px',fontSize:small?11:13,fontWeight:600,cursor:disabled?'not-allowed':'pointer',...style}}>{children}</button>
+  return <button onClick={onClick} disabled={disabled} style={{background:disabled?'#1E2535':'#5CBB00',color:disabled?'#64748B':'#111',border:'none',borderRadius:8,padding:small?'6px 12px':'9px 16px',fontSize:small?11:13,fontWeight:700,cursor:disabled?'not-allowed':'pointer',fontFamily:'Roboto,Arial,sans-serif',...style}}>{children}</button>
 }
 function Card({children,style}){return <div style={{background:'#141820',border:'1px solid #1E2535',borderRadius:12,padding:20,...style}}>{children}</div>}
-function StatCard({label,value,sub,color='#10B981',icon}){
+function StatCard({label,value,sub,color='#5CBB00',icon}){
   return <Card style={{flex:1,minWidth:150}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
       <span style={{fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:1}}>{label}</span>
@@ -132,11 +168,11 @@ function StatCard({label,value,sub,color='#10B981',icon}){
     {sub&&<div style={{fontSize:11,color:'#64748B',marginTop:4}}>{sub}</div>}
   </Card>
 }
-function Badge({text,color='#10B981'}){return <span style={{background:color+'22',color,fontSize:11,fontWeight:600,padding:'3px 8px',borderRadius:20,whiteSpace:'nowrap'}}>{text}</span>}
+function Badge({text,color='#5CBB00'}){return <span style={{background:color+'22',color,fontSize:11,fontWeight:600,padding:'3px 8px',borderRadius:20,whiteSpace:'nowrap'}}>{text}</span>}
 function MiniBtn({onClick,children,color}){return <button onClick={onClick} style={{background:color+'22',border:`1px solid ${color}44`,color,fontSize:10,padding:'3px 8px',borderRadius:6,cursor:'pointer',fontWeight:600,whiteSpace:'nowrap'}}>{children}</button>}
 function Loader({text='Cargando...'}){
   return <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:60,gap:16}}>
-    <div style={{width:36,height:36,border:'3px solid #1E2535',borderTop:'3px solid #10B981',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
+    <div style={{width:36,height:36,border:'3px solid #1E2535',borderTop:'3px solid #5CBB00',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
     <span style={{color:'#64748B',fontSize:13}}>{text}</span>
   </div>
 }
@@ -193,24 +229,24 @@ function LoginPage(){
     if(error)setError('Email o contraseña incorrectos')
     setLoading(false)
   }
-  return <div style={{minHeight:'100vh',background:'#080C12',display:'flex',alignItems:'center',justifyContent:'center'}}>
-    <div style={{width:400,background:'#0F1520',border:'1px solid #1A2235',borderRadius:20,padding:40,boxShadow:'0 32px 80px rgba(0,0,0,0.6)'}}>
-      <div style={{textAlign:'center',marginBottom:36}}>
-        <div style={{width:56,height:56,background:'linear-gradient(135deg,#10B981,#059669)',borderRadius:16,display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:26,fontWeight:800,color:'white',marginBottom:16}}>W</div>
-        <div style={{fontSize:24,fontWeight:700,color:'#F1F5F9'}}>WYN CRM</div>
-        <div style={{fontSize:13,color:'#475569',marginTop:6}}>Ingresá con tu cuenta corporativa</div>
+  return <div style={{minHeight:'100vh',background:'#111212',display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div style={{width:420,background:'#1A1B1B',border:'1px solid #2A2B2B',borderRadius:20,padding:44,boxShadow:'0 32px 80px rgba(0,0,0,0.7)'}}>
+      <div style={{textAlign:'center',marginBottom:38}}>
+        <div style={{display:'inline-flex',flexDirection:'column',alignItems:'center',gap:0,marginBottom:4}}>
+          <WynLogo height={44}/>
+        </div>
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:16}}>
         <div>
           <label style={{fontSize:11,color:'#64748B',textTransform:'uppercase',letterSpacing:1,display:'block',marginBottom:7}}>Email</label>
-          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="tu@email.com" style={{width:'100%',background:'#141E2E',border:'1px solid #1E2D42',color:'#E2E8F0',borderRadius:10,padding:'11px 14px',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
+          <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="tu@email.com" style={{width:'100%',background:'#222323',border:'1px solid #333',color:'#E2E8F0',borderRadius:10,padding:'11px 14px',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
         </div>
         <div>
           <label style={{fontSize:11,color:'#64748B',textTransform:'uppercase',letterSpacing:1,display:'block',marginBottom:7}}>Contraseña</label>
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="••••••••" style={{width:'100%',background:'#141E2E',border:'1px solid #1E2D42',color:'#E2E8F0',borderRadius:10,padding:'11px 14px',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="••••••••" style={{width:'100%',background:'#222323',border:'1px solid #333',color:'#E2E8F0',borderRadius:10,padding:'11px 14px',fontSize:14,outline:'none',boxSizing:'border-box'}}/>
         </div>
         {error&&<div style={{background:'#EF444415',border:'1px solid #EF444440',borderRadius:9,padding:'10px 14px',fontSize:13,color:'#EF4444'}}>⚠️ {error}</div>}
-        <button onClick={handleLogin} disabled={loading} style={{background:loading?'#1E2535':'linear-gradient(135deg,#10B981,#059669)',color:loading?'#64748B':'white',border:'none',borderRadius:10,padding:13,fontSize:14,fontWeight:600,cursor:loading?'wait':'pointer',marginTop:4}}>
+        <button onClick={handleLogin} disabled={loading} style={{background:loading?'#1E2535':'#5CBB00',color:loading?'#64748B':'white',border:'none',borderRadius:10,padding:13,fontSize:14,fontWeight:600,cursor:loading?'wait':'pointer',marginTop:4}}>
           {loading?'Ingresando...':'Ingresar →'}
         </button>
       </div>
@@ -228,10 +264,10 @@ function BPMModal({entity,onClose,onSave}){
   const done=Object.values(form.bpm_tasks||{}).filter(Boolean).length
   const pct=Math.round((done/BPM_TASKS.length)*100)
   const SECTIONS=[
-    {title:'📋 Definición de Servicio',color:'#10B981',fields:[{l:'Modalidad',k:'modalidad',opts:MODALITIES},{l:'País',k:'pais',opts:COUNTRIES},{l:'Tipo Entrega',k:'tipo_entrega',opts:DELIVERY_TYPES},{l:'Cash on Delivery',k:'cash_on_delivery',opts:['Sí','No']},{l:'Observaciones',k:'observaciones',wide:true},{l:'Fecha Requerimiento',k:'fecha_requerimiento',type:'date'}]},
+    {title:'📋 Definición de Servicio',color:'#5CBB00',fields:[{l:'Modalidad',k:'modalidad',opts:MODALITIES},{l:'País',k:'pais',opts:COUNTRIES},{l:'Tipo Entrega',k:'tipo_entrega',opts:DELIVERY_TYPES},{l:'Cash on Delivery',k:'cash_on_delivery',opts:['Sí','No']},{l:'Observaciones',k:'observaciones',wide:true},{l:'Fecha Requerimiento',k:'fecha_requerimiento',type:'date'}]},
     {title:'🔌 Integración',color:'#8B5CF6',fields:[{l:'Tipo',k:'integracion',opts:INTEGRATION_TYPES},{l:'Moneda',k:'moneda',opts:CURRENCIES},{l:'Etiqueta',k:'etiqueta'},{l:'Tracking Number',k:'tracking_number'},{l:'Obligaciones',k:'obligaciones',wide:true},{l:'Eventos Mandatorios',k:'eventos_mandatorios',wide:true}]},
     {title:'⚙️ Operativo',color:'#F59E0B',fields:[{l:'Cut Off',k:'cut_off'},{l:'Intentos',k:'intentos_entrega',type:'number'},{l:'Retornos',k:'retornos',opts:RETURN_TYPES},{l:'Cobertura',k:'cobertura'},{l:'Prealerta',k:'prealerta'},{l:'Comentarios',k:'comentarios_op',wide:true}]},
-    {title:'🧾 Facturación',color:'#06B6D4',fields:[{l:'Modalidad',k:'modalidad_fact',opts:MODALITIES},{l:'Evento Facturador',k:'billing_event',opts:BILLING_EVENTS},{l:'Período',k:'periodo'}]}
+    {title:'🧾 Facturación',color:'#007B84',fields:[{l:'Modalidad',k:'modalidad_fact',opts:MODALITIES},{l:'Evento Facturador',k:'billing_event',opts:BILLING_EVENTS},{l:'Período',k:'periodo'}]}
   ]
   return <Modal title={`BPM — ${entity?.empresa}`} onClose={onClose} wide>
     <div style={{display:'grid',gridTemplateColumns:'220px 1fr',gap:22}}>
@@ -240,15 +276,15 @@ function BPMModal({entity,onClose,onSave}){
         <div style={{marginBottom:14}}>
           <div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}>
             <span style={{fontSize:11,color:'#64748B'}}>Progreso</span>
-            <span style={{fontSize:12,fontWeight:700,color:pct===100?'#10B981':'#F59E0B'}}>{pct}%</span>
+            <span style={{fontSize:12,fontWeight:700,color:pct===100?'#5CBB00':'#F59E0B'}}>{pct}%</span>
           </div>
           <div style={{height:7,background:'#1E2535',borderRadius:4}}>
-            <div style={{width:`${pct}%`,height:'100%',background:pct===100?'#10B981':'linear-gradient(90deg,#F59E0B,#10B981)',borderRadius:4,transition:'width 0.3s'}}/>
+            <div style={{width:`${pct}%`,height:'100%',background:pct===100?'#5CBB00':'linear-gradient(90deg,#F59E0B,#5CBB00)',borderRadius:4,transition:'width 0.3s'}}/>
           </div>
         </div>
-        {BPM_TASKS.map(t=><div key={t} onClick={()=>toggleTask(t)} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 10px',background:form.bpm_tasks[t]?'#10B98115':'#141820',border:`1px solid ${form.bpm_tasks[t]?'#10B981':'#1E2535'}`,borderRadius:8,cursor:'pointer',marginBottom:5}}>
-          <div style={{width:18,height:18,borderRadius:4,border:`2px solid ${form.bpm_tasks[t]?'#10B981':'#475569'}`,background:form.bpm_tasks[t]?'#10B981':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,color:'white',flexShrink:0}}>{form.bpm_tasks[t]?'✓':''}</div>
-          <span style={{fontSize:12,color:form.bpm_tasks[t]?'#10B981':'#94A3B8',fontWeight:form.bpm_tasks[t]?600:400}}>{t}</span>
+        {BPM_TASKS.map(t=><div key={t} onClick={()=>toggleTask(t)} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 10px',background:form.bpm_tasks[t]?'#5CBB0015':'#141820',border:`1px solid ${form.bpm_tasks[t]?'#5CBB00':'#1E2535'}`,borderRadius:8,cursor:'pointer',marginBottom:5}}>
+          <div style={{width:18,height:18,borderRadius:4,border:`2px solid ${form.bpm_tasks[t]?'#5CBB00':'#475569'}`,background:form.bpm_tasks[t]?'#5CBB00':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,color:'white',flexShrink:0}}>{form.bpm_tasks[t]?'✓':''}</div>
+          <span style={{fontSize:12,color:form.bpm_tasks[t]?'#5CBB00':'#94A3B8',fontWeight:form.bpm_tasks[t]?600:400}}>{t}</span>
         </div>)}
       </div>
       <div style={{display:'flex',flexDirection:'column',gap:14,overflowY:'auto',maxHeight:'65vh'}}>
@@ -399,7 +435,7 @@ function ImportModal({onClose,onImport,defaultCountry}){
     setStep('done')
   }
 
-  const SC={'Primer Contacto':'#3B82F6','Reunión':'#8B5CF6','Propuesta Enviada':'#F59E0B','Ganado':'#10B981','Perdido':'#EF4444'}
+  const SC={'Primer Contacto':'#3B82F6','Reunión':'#8B5CF6','Propuesta Enviada':'#F59E0B','Ganado':'#5CBB00','Perdido':'#EF4444'}
   const statusCounts=rows.reduce((acc,r)=>{acc[r.status]=(acc[r.status]||0)+1;return acc},{})
 
   return <Modal title="Importar Leads desde CSV" onClose={onClose} wide subtitle="Compatible con el formato del Excel de WYN">
@@ -415,8 +451,8 @@ function ImportModal({onClose,onImport,defaultCountry}){
     </div>}
     {step==='preview'&&<div>
       <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
-        <div style={{background:'#10B98115',border:'1px solid #10B98133',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
-          <div style={{fontSize:28,fontWeight:700,color:'#10B981'}}>{rows.length}</div>
+        <div style={{background:'#5CBB0015',border:'1px solid #5CBB0033',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
+          <div style={{fontSize:28,fontWeight:700,color:'#5CBB00'}}>{rows.length}</div>
           <div style={{fontSize:11,color:'#64748B'}}>leads a importar</div>
         </div>
         {Object.entries(statusCounts).map(([status,count])=><div key={status} style={{background:(SC[status]||'#6B7280')+'15',border:`1px solid ${(SC[status]||'#6B7280')}33`,borderRadius:10,padding:'10px 14px',textAlign:'center'}}>
@@ -436,13 +472,13 @@ function ImportModal({onClose,onImport,defaultCountry}){
     {step==='importing'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
       <div style={{fontSize:36,marginBottom:16}}>⏳</div>
       <div style={{height:8,background:'#1E2535',borderRadius:4,marginBottom:10}}>
-        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#10B981,#059669)',borderRadius:4,transition:'width 0.3s'}}/>
+        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#5CBB00,#4CAF00)',borderRadius:4,transition:'width 0.3s'}}/>
       </div>
       <div style={{fontSize:13,color:'#64748B'}}>{progress}% completado</div>
     </div>}
     {step==='done'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
       <div style={{fontSize:48,marginBottom:16}}>✅</div>
-      <div style={{fontSize:18,fontWeight:700,color:'#10B981',marginBottom:8}}>{rows.length} leads importados</div>
+      <div style={{fontSize:18,fontWeight:700,color:'#5CBB00',marginBottom:8}}>{rows.length} leads importados</div>
       <GreenBtn onClick={onClose}>Cerrar y ver leads</GreenBtn>
     </div>}
   </Modal>
@@ -466,16 +502,16 @@ function DashboardView({leads,accounts,prospects,activities}){
   const lossReasons=fl.filter(l=>l.status==='Perdido'&&l.loss_reason).reduce((acc,l)=>{acc[l.loss_reason]=(acc[l.loss_reason]||0)+1;return acc},{})
   return <div style={{display:'flex',flexDirection:'column',gap:18}}>
     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-      {[['all','Todo el tiempo'],['month','Este mes'],['quarter','Último trimestre']].map(([v,label])=><button key={v} onClick={()=>setDateFilter(v)} style={{padding:'6px 14px',borderRadius:20,border:`1px solid ${dateFilter===v?'#10B981':'#2D3748'}`,background:dateFilter===v?'#10B98122':'transparent',color:dateFilter===v?'#10B981':'#64748B',fontSize:12,cursor:'pointer',fontWeight:dateFilter===v?600:400}}>{label}</button>)}
+      {[['all','Todo el tiempo'],['month','Este mes'],['quarter','Último trimestre']].map(([v,label])=><button key={v} onClick={()=>setDateFilter(v)} style={{padding:'6px 14px',borderRadius:20,border:`1px solid ${dateFilter===v?'#5CBB00':'#2D3748'}`,background:dateFilter===v?'#5CBB0022':'transparent',color:dateFilter===v?'#5CBB00':'#64748B',fontSize:12,cursor:'pointer',fontWeight:dateFilter===v?600:400}}>{label}</button>)}
       {staleCount>0&&<div style={{marginLeft:'auto',background:'#EF444415',border:'1px solid #EF444433',borderRadius:20,padding:'6px 14px',fontSize:12,color:'#EF4444',fontWeight:600}}>🔴 {staleCount} leads sin actividad +7d</div>}
     </div>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
       <StatCard label="Total Leads" value={fl.length} icon="🎯" color="#3B82F6" sub={`${prospects.length} prospectos`}/>
-      <StatCard label="Ganados" value={ganados} icon="🏆" color="#10B981" sub={`${perdidos} perdidos`}/>
+      <StatCard label="Ganados" value={ganados} icon="🏆" color="#5CBB00" sub={`${perdidos} perdidos`}/>
       <StatCard label="Conversión" value={`${conv}%`} icon="📈" color="#F59E0B"/>
       <StatCard label="Revenue Pipeline" value={fmtCur(totalRevenue)} icon="💰" color="#8B5CF6"/>
-      <StatCard label="Volumen Total" value={fmtNum(totalVolumen)} icon="📦" color="#06B6D4" sub="envíos/mes"/>
-      <StatCard label="Cuentas Activas" value={accounts.filter(a=>a.status==='Activo').length} icon="🏢" color="#10B981"/>
+      <StatCard label="Volumen Total" value={fmtNum(totalVolumen)} icon="📦" color="#007B84" sub="envíos/mes"/>
+      <StatCard label="Cuentas Activas" value={accounts.filter(a=>a.status==='Activo').length} icon="🏢" color="#5CBB00"/>
     </div>
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}}>
       <Card>
@@ -494,7 +530,7 @@ function DashboardView({leads,accounts,prospects,activities}){
         {byCountry.map(c=><div key={c.country} style={{display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',fontSize:12,padding:'5px 0',borderBottom:'1px solid #1E253540'}}>
           <div style={{color:'#E2E8F0'}}>{c.country}</div>
           <div style={{color:'#3B82F6',fontWeight:600}}>{c.leads}</div>
-          <div style={{color:'#10B981',fontWeight:600}}>{c.ganados}</div>
+          <div style={{color:'#5CBB00',fontWeight:600}}>{c.ganados}</div>
           <div style={{color:'#8B5CF6',fontWeight:600,fontSize:10}}>{fmtCur(c.revenue)}</div>
         </div>)}
       </Card>
@@ -529,13 +565,13 @@ function PipelineView({leads,activities,onMoveStage,onSelect,onConfirmLoss}){
             return <div key={lead.id} onClick={()=>onSelect(lead)} style={{background:'#1A1F2E',border:`1px solid ${stale?'#EF444466':'#2D3748'}`,borderRadius:8,padding:'9px 10px',cursor:'pointer'}}>
               <div style={{fontSize:12,fontWeight:600,color:'#F1F5F9',marginBottom:2}}>{lead.empresa}{stale&&<StaleWarning/>}</div>
               <div style={{fontSize:10,color:'#64748B',marginBottom:6}}>{lead.country} · {lead.tier}</div>
-              {lead.volumen>0&&<div style={{fontSize:10,color:'#10B981',marginBottom:6}}>📦 {fmtNum(lead.volumen)}/mes</div>}
+              {lead.volumen>0&&<div style={{fontSize:10,color:'#5CBB00',marginBottom:6}}>📦 {fmtNum(lead.volumen)}/mes</div>}
               <div style={{height:3,background:'#2D3748',borderRadius:2,overflow:'hidden',marginBottom:6}}>
                 <div style={{width:`${lead.progress_to_won||0}%`,height:'100%',background:progressColor(lead.progress_to_won||0)}}/>
               </div>
               {!isEnd&&<div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
                 {idx>0&&<MiniBtn onClick={e=>{e.stopPropagation();onMoveStage(lead,PIPELINE_STAGES[idx-1])}} color="#64748B">←</MiniBtn>}
-                <MiniBtn onClick={e=>{e.stopPropagation();onMoveStage(lead,PIPELINE_STAGES[idx+1])}} color="#10B981">→</MiniBtn>
+                <MiniBtn onClick={e=>{e.stopPropagation();onMoveStage(lead,PIPELINE_STAGES[idx+1])}} color="#5CBB00">→</MiniBtn>
                 <MiniBtn onClick={e=>{e.stopPropagation();onConfirmLoss(lead)}} color="#EF4444">✗</MiniBtn>
               </div>}
             </div>
@@ -547,10 +583,11 @@ function PipelineView({leads,activities,onMoveStage,onSelect,onConfirmLoss}){
 }
 
 // ── LEADS VIEW ────────────────────────────────────────────
-function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,onConfirmLoss}){
+function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,onConfirmLoss,onDelete}){
   const[filter,setFilter]=useState('')
   const[stageFilter,setStageFilter]=useState('Todos')
   const[staleOnly,setStaleOnly]=useState(false)
+  const[confirmDelete,setConfirmDelete]=useState(null)
   const filtered=leads.filter(l=>{
     if(staleOnly&&!isStale(l,activities))return false
     if(stageFilter!=='Todos'&&l.status!==stageFilter)return false
@@ -589,7 +626,7 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
                   <td style={{padding:'10px 12px',fontSize:12,color:'#CBD5E1'}}>{lead.contacto||'—'}</td>
                   <td style={{padding:'10px 12px'}}><Badge text={lead.status} color={stageColor(lead.status)}/></td>
                   <td style={{padding:'10px 12px'}}><Badge text={lead.tier||'—'} color="#8B5CF6"/></td>
-                  <td style={{padding:'10px 12px',fontSize:12,color:'#06B6D4',fontWeight:600}}>{lead.volumen?fmtNum(lead.volumen):'—'}</td>
+                  <td style={{padding:'10px 12px',fontSize:12,color:'#007B84',fontWeight:600}}>{lead.volumen?fmtNum(lead.volumen):'—'}</td>
                   <td style={{padding:'10px 12px',fontSize:12,color:'#8B5CF6',fontWeight:600}}>{lead.revenue?fmtCur(lead.revenue):'—'}</td>
                   <td style={{padding:'10px 12px',minWidth:90}}>
                     <div style={{display:'flex',alignItems:'center',gap:5}}>
@@ -602,9 +639,10 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
                     <div style={{display:'flex',gap:3}}>
                       <MiniBtn onClick={()=>onEdit(lead)} color="#3B82F6">✎</MiniBtn>
                       <MiniBtn onClick={()=>onActivity(lead)} color="#F59E0B">+{actCount>0?actCount:''}</MiniBtn>
-                      {lead.status==='Ganado'&&<MiniBtn onClick={()=>onBPM(lead)} color="#10B981">BPM</MiniBtn>}
-                      {lead.status==='Ganado'&&!hasAccount&&<MiniBtn onClick={()=>onConvert(lead)} color="#10B981">→Cta</MiniBtn>}
+                      {lead.status==='Ganado'&&<MiniBtn onClick={()=>onBPM(lead)} color="#5CBB00">BPM</MiniBtn>}
+                      {lead.status==='Ganado'&&!hasAccount&&<MiniBtn onClick={()=>onConvert(lead)} color="#5CBB00">→Cta</MiniBtn>}
                       {lead.status!=='Perdido'&&lead.status!=='Ganado'&&<MiniBtn onClick={()=>onConfirmLoss(lead)} color="#EF4444">✗</MiniBtn>}
+                      <MiniBtn onClick={()=>setConfirmDelete(lead)} color="#EF444488">🗑</MiniBtn>
                     </div>
                   </td>
                 </tr>
@@ -614,6 +652,17 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
         </table>
       </div>
     </Card>
+    {confirmDelete&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2000}}>
+      <div style={{background:'#141820',border:'1px solid #EF444444',borderRadius:16,padding:28,width:380,textAlign:'center'}}>
+        <div style={{fontSize:32,marginBottom:12}}>🗑️</div>
+        <div style={{fontSize:16,fontWeight:700,color:'#F1F5F9',marginBottom:8}}>¿Eliminar lead?</div>
+        <div style={{fontSize:13,color:'#94A3B8',marginBottom:22}}>Vas a eliminar <strong style={{color:'#EF4444'}}>{confirmDelete.empresa}</strong>. Esta acción no se puede deshacer.</div>
+        <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+          <button onClick={()=>setConfirmDelete(null)} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 20px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
+          <button onClick={()=>{onDelete(confirmDelete);setConfirmDelete(null)}} style={{background:'#EF4444',color:'white',border:'none',borderRadius:8,padding:'9px 20px',fontSize:13,fontWeight:600,cursor:'pointer'}}>Eliminar</button>
+        </div>
+      </div>
+    </div>}
   </div>
 }
 
@@ -634,15 +683,15 @@ function ProspectsView({prospects,onEdit,onConvert}){
               :filtered.map(p=><tr key={p.id} style={{borderBottom:'1px solid #1E253550'}}>
                 <td style={{padding:'10px 12px',fontSize:11,color:'#94A3B8'}}>{p.country}</td>
                 <td style={{padding:'10px 12px',fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{p.empresa}</td>
-                <td style={{padding:'10px 12px',fontSize:12,color:'#06B6D4',fontWeight:600}}>{fmtNum(p.volumen_estimado)}</td>
-                <td style={{padding:'10px 12px'}}><Badge text={p.status} color={p.status==='Sin Contacto'?'#F59E0B':'#10B981'}/></td>
+                <td style={{padding:'10px 12px',fontSize:12,color:'#007B84',fontWeight:600}}>{fmtNum(p.volumen_estimado)}</td>
+                <td style={{padding:'10px 12px'}}><Badge text={p.status} color={p.status==='Sin Contacto'?'#F59E0B':'#5CBB00'}/></td>
                 <td style={{padding:'10px 12px',fontSize:12,color:'#CBD5E1'}}>{p.contacto||'—'}</td>
                 <td style={{padding:'10px 12px',fontSize:11,color:'#64748B'}}>{p.email||'—'}</td>
-                <td style={{padding:'10px 12px'}}>{p.validada?<Badge text="✓" color="#10B981"/>:<Badge text="✗" color="#EF4444"/>}</td>
+                <td style={{padding:'10px 12px'}}>{p.validada?<Badge text="✓" color="#5CBB00"/>:<Badge text="✗" color="#EF4444"/>}</td>
                 <td style={{padding:'10px 12px'}}>
                   <div style={{display:'flex',gap:4}}>
                     <MiniBtn onClick={()=>onEdit(p)} color="#3B82F6">✎</MiniBtn>
-                    {p.contacto&&p.email&&<MiniBtn onClick={()=>onConvert(p)} color="#10B981">→ Lead</MiniBtn>}
+                    {p.contacto&&p.email&&<MiniBtn onClick={()=>onConvert(p)} color="#5CBB00">→ Lead</MiniBtn>}
                   </div>
                 </td>
               </tr>)
@@ -668,17 +717,17 @@ function AccountsView({accounts,onBPM}){
             <div style={{fontSize:15,fontWeight:700,color:'#F1F5F9'}}>{acc.empresa}</div>
             <div style={{fontSize:11,color:'#64748B'}}>{acc.country} · {acc.contacto}</div>
           </div>
-          <Badge text={acc.status} color="#10B981"/>
+          <Badge text={acc.status} color="#5CBB00"/>
         </div>
         <div style={{marginBottom:12}}>
           <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
             <span style={{fontSize:11,color:'#64748B'}}>BPM Onboarding</span>
-            <span style={{fontSize:11,fontWeight:700,color:pct===100?'#10B981':'#F59E0B'}}>{pct}%</span>
+            <span style={{fontSize:11,fontWeight:700,color:pct===100?'#5CBB00':'#F59E0B'}}>{pct}%</span>
           </div>
-          <div style={{height:6,background:'#1E2535',borderRadius:3}}><div style={{width:`${pct}%`,height:'100%',background:pct===100?'#10B981':'#F59E0B',borderRadius:3}}/></div>
+          <div style={{height:6,background:'#1E2535',borderRadius:3}}><div style={{width:`${pct}%`,height:'100%',background:pct===100?'#5CBB00':'#F59E0B',borderRadius:3}}/></div>
         </div>
         <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:12}}>
-          {BPM_TASKS.map(t=><span key={t} style={{fontSize:10,padding:'2px 6px',borderRadius:6,background:tasks[t]?'#10B98122':'#1E2535',color:tasks[t]?'#10B981':'#475569',border:`1px solid ${tasks[t]?'#10B98144':'#2D3748'}`}}>{t}</span>)}
+          {BPM_TASKS.map(t=><span key={t} style={{fontSize:10,padding:'2px 6px',borderRadius:6,background:tasks[t]?'#5CBB0022':'#1E2535',color:tasks[t]?'#5CBB00':'#475569',border:`1px solid ${tasks[t]?'#5CBB0044':'#2D3748'}`}}>{t}</span>)}
         </div>
         <GreenBtn small onClick={()=>onBPM(acc)}>⚙️ Gestionar BPM</GreenBtn>
       </Card>
@@ -709,25 +758,74 @@ function ActivitiesView({activities,leads}){
   </div>
 }
 
+// ── PRODUCT MODAL ─────────────────────────────────────────
+function ProductModal({product,onClose,onSave}){
+  const[form,setForm]=useState(product||{country:'',servicio:'',modalidad:'B2C',tipo_entrega:'Domicilio',tarifa:'',moneda:'USD',sla:'',condiciones:''})
+  const[saving,setSaving]=useState(false)
+  const f=(k,v)=>setForm(p=>({...p,[k]:v}))
+  return <Modal title={product?'Editar Producto':'Nuevo Producto'} onClose={onClose}>
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <FInput label="País" value={form.country} onChange={v=>f('country',v)} options={COUNTRIES} required/>
+      <FInput label="Nombre del Servicio" value={form.servicio} onChange={v=>f('servicio',v)} required/>
+      <FInput label="Modalidad" value={form.modalidad} onChange={v=>f('modalidad',v)} options={MODALITIES}/>
+      <FInput label="Tipo de Entrega" value={form.tipo_entrega} onChange={v=>f('tipo_entrega',v)} options={DELIVERY_TYPES}/>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+        <FInput label="Tarifa" value={form.tarifa} onChange={v=>f('tarifa',v)}/>
+        <FInput label="Moneda" value={form.moneda} onChange={v=>f('moneda',v)} options={CURRENCIES}/>
+      </div>
+      <FInput label="SLA" value={form.sla} onChange={v=>f('sla',v)}/>
+      <FInput label="Condiciones" value={form.condiciones} onChange={v=>f('condiciones',v)}/>
+    </div>
+    <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:18}}>
+      <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
+      <GreenBtn onClick={async()=>{if(!form.servicio||!form.country)return;setSaving(true);await onSave(form);setSaving(false);onClose()}} disabled={saving}>Guardar</GreenBtn>
+    </div>
+  </Modal>
+}
+
 // ── PRODUCTS VIEW ─────────────────────────────────────────
-function ProductsView({products}){
-  if(!products.length)return <EmptyState icon="📦" title="Sin productos cargados"/>
-  return <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
-    {products.filter(p=>p.active!==false).map(p=><Card key={p.id}>
-      <div style={{marginBottom:10}}>
-        <div style={{fontSize:14,fontWeight:700,color:'#F1F5F9',marginBottom:6}}>{p.servicio}</div>
-        <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-          <Badge text={p.country} color="#3B82F6"/>
-          {p.modalidad&&<Badge text={p.modalidad} color="#8B5CF6"/>}
-          {p.tipo_entrega&&<Badge text={p.tipo_entrega} color="#06B6D4"/>}
+function ProductsView({products,isRegional,onSave,onDelete}){
+  const[showModal,setShowModal]=useState(false)
+  const[editProduct,setEditProduct]=useState(null)
+  const[confirmDelete,setConfirmDelete]=useState(null)
+  if(!products.length&&!isRegional)return <EmptyState icon="📦" title="Sin productos cargados"/>
+  return <div style={{display:'flex',flexDirection:'column',gap:16}}>
+    {isRegional&&<div style={{display:'flex',justifyContent:'flex-end'}}>
+      <GreenBtn onClick={()=>{setEditProduct(null);setShowModal(true)}}>+ Nuevo Producto</GreenBtn>
+    </div>}
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
+      {products.filter(p=>p.active!==false).map(p=><Card key={p.id}>
+        <div style={{marginBottom:10}}>
+          <div style={{fontSize:14,fontWeight:700,color:'#F1F5F9',marginBottom:6}}>{p.servicio}</div>
+          <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+            <Badge text={p.country} color="#3B82F6"/>
+            {p.modalidad&&<Badge text={p.modalidad} color="#8B5CF6"/>}
+            {p.tipo_entrega&&<Badge text={p.tipo_entrega} color="#007B84"/>}
+          </div>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
+          <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>Tarifa</div><div style={{fontSize:16,fontWeight:700,color:'#5CBB00'}}>{p.moneda} {p.tarifa}</div></div>
+          <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>SLA</div><div style={{fontSize:14,fontWeight:700,color:'#F59E0B'}}>{p.sla}</div></div>
+        </div>
+        {p.condiciones&&<div style={{fontSize:11,color:'#64748B',marginBottom:10}}><strong style={{color:'#94A3B8'}}>Condiciones:</strong> {p.condiciones}</div>}
+        {isRegional&&<div style={{display:'flex',gap:6,marginTop:8}}>
+          <MiniBtn onClick={()=>{setEditProduct(p);setShowModal(true)}} color="#3B82F6">✎ Editar</MiniBtn>
+          <MiniBtn onClick={()=>setConfirmDelete(p)} color="#EF4444">🗑 Eliminar</MiniBtn>
+        </div>}
+      </Card>)}
+    </div>
+    {showModal&&<ProductModal product={editProduct} onClose={()=>{setShowModal(false);setEditProduct(null)}} onSave={onSave}/>}
+    {confirmDelete&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2000}}>
+      <div style={{background:'#141820',border:'1px solid #EF444444',borderRadius:16,padding:28,width:380,textAlign:'center'}}>
+        <div style={{fontSize:32,marginBottom:12}}>🗑️</div>
+        <div style={{fontSize:16,fontWeight:700,color:'#F1F5F9',marginBottom:8}}>¿Eliminar producto?</div>
+        <div style={{fontSize:13,color:'#94A3B8',marginBottom:22}}>Vas a eliminar <strong style={{color:'#EF4444'}}>{confirmDelete.servicio}</strong>.</div>
+        <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+          <button onClick={()=>setConfirmDelete(null)} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 20px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
+          <button onClick={()=>{onDelete(confirmDelete);setConfirmDelete(null)}} style={{background:'#EF4444',color:'white',border:'none',borderRadius:8,padding:'9px 20px',fontSize:13,fontWeight:600,cursor:'pointer'}}>Eliminar</button>
         </div>
       </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
-        <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>Tarifa</div><div style={{fontSize:16,fontWeight:700,color:'#10B981'}}>{p.moneda} {p.tarifa}</div></div>
-        <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>SLA</div><div style={{fontSize:14,fontWeight:700,color:'#F59E0B'}}>{p.sla}</div></div>
-      </div>
-      {p.condiciones&&<div style={{fontSize:11,color:'#64748B'}}><strong style={{color:'#94A3B8'}}>Condiciones:</strong> {p.condiciones}</div>}
-    </Card>)}
+    </div>}
   </div>
 }
 
@@ -741,7 +839,7 @@ function ReportsView({leads,accounts}){
   return <div style={{display:'flex',flexDirection:'column',gap:16}}>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
       <StatCard label="Total Leads" value={leads.length} icon="🎯" color="#3B82F6"/>
-      <StatCard label="Ganados" value={ganados} icon="🏆" color="#10B981"/>
+      <StatCard label="Ganados" value={ganados} icon="🏆" color="#5CBB00"/>
       <StatCard label="Perdidos" value={perdidos} icon="❌" color="#EF4444"/>
       <StatCard label="Conversión" value={`${conv}%`} icon="📈" color="#F59E0B"/>
       <StatCard label="Revenue" value={fmtCur(totalRev)} icon="💰" color="#8B5CF6"/>
@@ -761,11 +859,11 @@ function ReportsView({leads,accounts}){
             return <tr key={c.country} style={{borderBottom:'1px solid #1E253550',background:i%2===0?'transparent':'#0F111750'}}>
               <td style={{padding:'10px 12px',fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{c.country}</td>
               <td style={{padding:'10px 12px',fontSize:12,color:'#3B82F6',fontWeight:600}}>{c.leads}</td>
-              <td style={{padding:'10px 12px',fontSize:12,color:'#10B981',fontWeight:600}}>{c.ganados}</td>
+              <td style={{padding:'10px 12px',fontSize:12,color:'#5CBB00',fontWeight:600}}>{c.ganados}</td>
               <td style={{padding:'10px 12px',fontSize:12,color:'#EF4444',fontWeight:600}}>{c.perdidos}</td>
               <td style={{padding:'10px 12px',fontSize:12,color:'#F59E0B',fontWeight:600}}>{conv}%</td>
               <td style={{padding:'10px 12px',fontSize:12,color:'#8B5CF6',fontWeight:600}}>{fmtCur(c.revenue)}</td>
-              <td style={{padding:'10px 12px',fontSize:12,color:'#06B6D4',fontWeight:600}}>{fmtNum(c.volumen)}</td>
+              <td style={{padding:'10px 12px',fontSize:12,color:'#007B84',fontWeight:600}}>{fmtNum(c.volumen)}</td>
             </tr>
           })}
         </tbody>
@@ -802,6 +900,107 @@ function ProspectModal({prospect,onClose,onSave,defaultCountry}){
   </Modal>
 }
 
+// ── IMPORT PROSPECTS MODAL ────────────────────────────────
+function ImportProspectsModal({onClose,onImport,defaultCountry}){
+  const[step,setStep]=useState('upload')
+  const[rows,setRows]=useState([])
+  const[errors,setErrors]=useState([])
+  const[progress,setProgress]=useState(0)
+
+  const HEADER_MAP={'country':'country','país':'country','pais':'country','empresa':'empresa','contacto':'contacto','nombre del contacto':'contacto','puesto':'puesto','puesto del contacto':'puesto','email':'email','mail del contacto':'email','mail':'email','phone':'phone','teléfono':'phone','volumen estimado':'volumen_estimado','volumen_estimado':'volumen_estimado','volumen':'volumen_estimado','estado':'status','status':'status','notas':'notas','comentarios':'notas','comments':'notas'}
+
+  function parseCSV(text){
+    const lines=text.split('\n').filter(l=>l.trim())
+    if(lines.length<2)return
+    const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,''))
+    const fieldMap=headers.map(h=>HEADER_MAP[h.toLowerCase()]||null)
+    const parsed=[];const errs=[]
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(',').map(c=>c.trim().replace(/"/g,''))
+      if(cols.every(c=>!c))continue
+      const row={country:defaultCountry||'',status:'Sin Contacto',volumen_estimado:0}
+      fieldMap.forEach((field,idx)=>{
+        if(!field)return
+        const val=cols[idx]?.trim()||''
+        if(field==='volumen_estimado')row[field]=parseFloat(val)||0
+        else row[field]=val
+      })
+      if(!row.empresa){errs.push(`Fila ${i+1}: Empresa requerida`);continue}
+      parsed.push(row)
+    }
+    setRows(parsed);setErrors(errs);setStep('preview')
+  }
+
+  async function handleImport(){
+    setStep('importing')
+    const batchSize=20;let done=0
+    for(let i=0;i<rows.length;i+=batchSize){
+      await onImport(rows.slice(i,i+batchSize))
+      done+=Math.min(batchSize,rows.length-i)
+      setProgress(Math.round((done/rows.length)*100))
+    }
+    setStep('done')
+  }
+
+  return <Modal title="Importar Prospectos desde CSV" onClose={onClose} wide subtitle="Columnas: country, empresa, contacto, puesto, email, phone, volumen_estimado, notas">
+    {step==='upload'&&<div>
+      <div style={{border:'2px dashed #2D3748',borderRadius:12,padding:'48px 24px',textAlign:'center'}}>
+        <div style={{fontSize:36,marginBottom:14}}>📂</div>
+        <div style={{fontSize:15,fontWeight:600,color:'#F1F5F9',marginBottom:8}}>Seleccioná tu archivo CSV</div>
+        <input type="file" accept=".csv" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>parseCSV(ev.target.result);r.readAsText(f,'UTF-8')}}} style={{marginTop:12}}/>
+      </div>
+      <div style={{marginTop:16,background:'#1A2235',borderRadius:10,padding:14,fontSize:12,color:'#64748B'}}>
+        <strong style={{color:'#94A3B8'}}>Columnas aceptadas:</strong> country, empresa, contacto, puesto, email, phone, volumen_estimado, notas
+      </div>
+    </div>}
+    {step==='preview'&&<div>
+      <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+        <div style={{background:'#5CBB0015',border:'1px solid #5CBB0033',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
+          <div style={{fontSize:28,fontWeight:700,color:'#5CBB00'}}>{rows.length}</div>
+          <div style={{fontSize:11,color:'#64748B'}}>prospectos a importar</div>
+        </div>
+        {errors.length>0&&<div style={{background:'#EF444415',border:'1px solid #EF444433',borderRadius:10,padding:14}}>
+          <div style={{fontSize:12,fontWeight:600,color:'#EF4444',marginBottom:6}}>⚠️ {errors.length} filas con problemas</div>
+          {errors.slice(0,3).map((e,i)=><div key={i} style={{fontSize:11,color:'#F87171'}}>• {e}</div>)}
+        </div>}
+      </div>
+      <div style={{background:'#141820',borderRadius:10,overflow:'auto',maxHeight:260,marginBottom:16}}>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
+          <thead><tr style={{borderBottom:'1px solid #1E2535'}}>
+            {['País','Empresa','Contacto','Email','Volumen'].map(h=><th key={h} style={{padding:'8px 12px',color:'#64748B',textAlign:'left',background:'#0F1117'}}>{h}</th>)}
+          </tr></thead>
+          <tbody>
+            {rows.slice(0,8).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #1E253530'}}>
+              <td style={{padding:'7px 12px',color:'#94A3B8'}}>{r.country}</td>
+              <td style={{padding:'7px 12px',color:'#F1F5F9',fontWeight:600}}>{r.empresa}</td>
+              <td style={{padding:'7px 12px',color:'#CBD5E1'}}>{r.contacto||'—'}</td>
+              <td style={{padding:'7px 12px',color:'#64748B'}}>{r.email||'—'}</td>
+              <td style={{padding:'7px 12px',color:'#007B84'}}>{r.volumen_estimado||'—'}</td>
+            </tr>)}
+            {rows.length>8&&<tr><td colSpan={5} style={{padding:'8px 12px',color:'#64748B',textAlign:'center'}}>... y {rows.length-8} más</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between'}}>
+        <button onClick={()=>{setStep('upload');setRows([]);setErrors([])}} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>← Volver</button>
+        <GreenBtn onClick={handleImport} disabled={rows.length===0}>Importar {rows.length} prospectos →</GreenBtn>
+      </div>
+    </div>}
+    {step==='importing'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
+      <div style={{fontSize:36,marginBottom:16}}>⏳</div>
+      <div style={{height:8,background:'#1E2535',borderRadius:4,marginBottom:10}}>
+        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#5CBB00,#4CAF00)',borderRadius:4,transition:'width 0.3s'}}/>
+      </div>
+      <div style={{fontSize:13,color:'#64748B'}}>{progress}% completado</div>
+    </div>}
+    {step==='done'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
+      <div style={{fontSize:48,marginBottom:16}}>✅</div>
+      <div style={{fontSize:18,fontWeight:700,color:'#5CBB00',marginBottom:8}}>{rows.length} prospectos importados</div>
+      <GreenBtn onClick={onClose}>Cerrar y ver prospectos</GreenBtn>
+    </div>}
+  </Modal>
+}
+
 // ── MAIN APP ──────────────────────────────────────────────
 const NAV=[{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'pipeline',icon:'🔀',label:'Pipeline'},{id:'leads',icon:'🎯',label:'Leads'},{id:'prospects',icon:'🔍',label:'Prospectos'},{id:'accounts',icon:'🏢',label:'Cuentas'},{id:'activities',icon:'📋',label:'Actividades'},{id:'products',icon:'📦',label:'Productos & Tarifas'},{id:'reports',icon:'📈',label:'Reportes'}]
 
@@ -824,12 +1023,13 @@ function CRMApp(){
   const[activityLead,setActivityLead]=useState(null)
   const[lossLead,setLossLead]=useState(null)
   const[showImport,setShowImport]=useState(false)
+  const[showImportProspects,setShowImportProspects]=useState(false)
   const[sidebarCollapsed,setSidebarCollapsed]=useState(false)
   const[toast,setToast]=useState(null)
 
   const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3500)}
   const effectiveCountry=isRegional?selectedCountry:userCountry
-  const countryFilter=useCallback(items=>effectiveCountry==='Regional'?items:items.filter(i=>i.country===effectiveCountry),[effectiveCountry])
+  const countryFilter=useCallback(items=>effectiveCountry==='Regional'?items:items.filter(i=>i.country===effectiveCountry||i.country==='Regional'),[effectiveCountry])
 
   const fetchAll=useCallback(async()=>{
     setLoading(true);setError(null)
@@ -848,6 +1048,12 @@ function CRMApp(){
   },[isRegional,userCountry])
 
   useEffect(()=>{fetchAll()},[fetchAll])
+
+  async function deleteLead(lead){
+    const{error}=await sb.from('leads').delete().eq('id',lead.id)
+    if(!error){setLeads(prev=>prev.filter(l=>l.id!==lead.id));showToast(`${lead.empresa} eliminado`)}
+    else showToast('Error al eliminar','error')
+  }
 
   async function saveLead(data){
     const now=new Date().toISOString()
@@ -915,6 +1121,23 @@ function CRMApp(){
     setActivityLead(null)
   }
 
+  async function saveProduct(data){
+    if(data.id){
+      const{error}=await sb.from('products').update(data).eq('id',data.id)
+      if(!error){setProducts(prev=>prev.map(p=>p.id===data.id?data:p));showToast('Producto actualizado ✅')}
+      else showToast('Error al guardar','error')
+    }else{
+      const{data:np,error}=await sb.from('products').insert([{...data,created_at:new Date().toISOString()}]).select().single()
+      if(!error){setProducts(prev=>[np,...prev]);showToast('Producto creado ✅')}
+      else showToast('Error al crear','error')
+    }
+  }
+  async function deleteProduct(product){
+    const{error}=await sb.from('products').delete().eq('id',product.id)
+    if(!error){setProducts(prev=>prev.filter(p=>p.id!==product.id));showToast(`${product.servicio} eliminado`)}
+    else showToast('Error al eliminar','error')
+  }
+
   async function saveBPM(data){
     const table=accounts.find(a=>a.id===data.id)?'accounts':'leads'
     const{error}=await sb.from(table).update({bpm_tasks:data.bpm_tasks,servicio:data.servicio}).eq('id',data.id)
@@ -939,6 +1162,13 @@ function CRMApp(){
     await fetchAll()
   }
 
+  async function handleImportProspects(batch){
+    const rows=batch.map(r=>({...r,created_at:new Date().toISOString()}))
+    const{error}=await sb.from('prospects').insert(rows)
+    if(error){showToast('Error en importación','error');return}
+    await fetchAll()
+  }
+
   const fLeads=countryFilter(leads)
   const fProspects=countryFilter(prospects)
   const fAccounts=countryFilter(accounts)
@@ -946,10 +1176,12 @@ function CRMApp(){
 
   return <div style={{display:'flex',height:'100vh',overflow:'hidden',fontFamily:"'DM Sans',sans-serif",background:'#0F1117',color:'#E2E8F0'}}>
     {/* SIDEBAR */}
-    <aside style={{width:sidebarCollapsed?60:216,background:'#0A0D14',borderRight:'1px solid #1E2535',display:'flex',flexDirection:'column',transition:'width 0.2s',flexShrink:0,overflow:'hidden'}}>
-      <div style={{padding:'16px 12px 10px',borderBottom:'1px solid #1E2535',display:'flex',alignItems:'center',gap:8}}>
-        <div style={{width:30,height:30,background:'linear-gradient(135deg,#10B981,#059669)',borderRadius:7,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:800,color:'white',flexShrink:0}}>W</div>
-        {!sidebarCollapsed&&<span style={{fontSize:14,fontWeight:700,color:'#F1F5F9',whiteSpace:'nowrap'}}>WYN CRM</span>}
+    <aside style={{width:sidebarCollapsed?60:220,background:'#111212',borderRight:'1px solid #222',display:'flex',flexDirection:'column',transition:'width 0.2s',flexShrink:0,overflow:'hidden'}}>
+      <div style={{padding:'12px',borderBottom:'1px solid #222',display:'flex',alignItems:'center',justifyContent:'center',minHeight:62}}>
+        {sidebarCollapsed
+          ? <WynIcon size={36}/>
+          : <WynLogoSmall height={28}/>
+        }
       </div>
       {!sidebarCollapsed&&<div style={{padding:'10px 10px 6px'}}>
         {isRegional
@@ -957,11 +1189,11 @@ function CRMApp(){
             <option value="Regional">🌎 Regional</option>
             {COUNTRIES.map(c=><option key={c} value={c}>{c}</option>)}
           </select>
-          :<div style={{background:'#10B98122',border:'1px solid #10B98144',borderRadius:7,padding:'6px 10px',fontSize:11,color:'#10B981',fontWeight:600}}>📍 {userCountry}</div>
+          :<div style={{background:'#5CBB0022',border:'1px solid #5CBB0044',borderRadius:7,padding:'6px 10px',fontSize:11,color:'#5CBB00',fontWeight:600}}>📍 {userCountry}</div>
         }
       </div>}
       <nav style={{flex:1,padding:'6px',display:'flex',flexDirection:'column',gap:1,overflowY:'auto'}}>
-        {NAV.map(item=><button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',gap:9,padding:'8px 8px',borderRadius:7,border:'none',cursor:'pointer',background:view===item.id?'rgba(16,185,129,0.18)':'transparent',color:view===item.id?'#10B981':'#94A3B8',fontSize:12,fontWeight:view===item.id?600:400,textAlign:'left',borderLeft:`2px solid ${view===item.id?'#10B981':'transparent'}`,whiteSpace:'nowrap'}}>
+        {NAV.map(item=><button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',gap:9,padding:'8px 8px',borderRadius:7,border:'none',cursor:'pointer',background:view===item.id?'rgba(16,185,129,0.18)':'transparent',color:view===item.id?'#5CBB00':'#94A3B8',fontSize:12,fontWeight:view===item.id?600:400,textAlign:'left',borderLeft:`2px solid ${view===item.id?'#5CBB00':'transparent'}`,whiteSpace:'nowrap'}}>
           <span style={{fontSize:14,flexShrink:0}}>{item.icon}</span>
           {!sidebarCollapsed&&<span>{item.label}</span>}
         </button>)}
@@ -986,7 +1218,7 @@ function CRMApp(){
             <button onClick={()=>setShowImport(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#94A3B8',fontSize:12,cursor:'pointer'}}>↑ Importar CSV</button>
             <GreenBtn onClick={()=>{setEditLead(null);setShowLeadModal(true)}}>+ Nuevo Lead</GreenBtn>
           </>}
-          {view==='prospects'&&<GreenBtn onClick={()=>{setEditProspect(null);setShowProspectModal(true)}}>+ Nuevo Prospecto</GreenBtn>}
+          {view==='prospects'&&<><button onClick={()=>setShowImportProspects(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#94A3B8',fontSize:12,cursor:'pointer'}}>↑ Importar CSV</button><GreenBtn onClick={()=>{setEditProspect(null);setShowProspectModal(true)}}>+ Nuevo Prospecto</GreenBtn></>}
         </div>
       </div>
       <div style={{padding:'20px 22px',flex:1}}>
@@ -997,11 +1229,11 @@ function CRMApp(){
         {loading?<Loader/>:<>
           {view==='dashboard'&&<DashboardView leads={fLeads} accounts={fAccounts} prospects={fProspects} activities={activities}/>}
           {view==='pipeline'&&<PipelineView leads={fLeads} activities={activities} onMoveStage={moveLead} onSelect={l=>{setEditLead(l);setShowLeadModal(true)}} onConfirmLoss={setLossLead}/>}
-          {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead}/>}
+          {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead}/>}
           {view==='prospects'&&<ProspectsView prospects={fProspects} onEdit={p=>{setEditProspect(p);setShowProspectModal(true)}} onConvert={convertProspectToLead}/>}
           {view==='accounts'&&<AccountsView accounts={fAccounts} onBPM={setBpmEntity}/>}
           {view==='activities'&&<ActivitiesView activities={activities} leads={leads}/>}
-          {view==='products'&&<ProductsView products={fProducts}/>}
+          {view==='products'&&<ProductsView products={fProducts} isRegional={isRegional} onSave={saveProduct} onDelete={deleteProduct}/>}
           {view==='reports'&&<ReportsView leads={fLeads} accounts={fAccounts}/>}
         </>}
       </div>
@@ -1013,7 +1245,8 @@ function CRMApp(){
     {activityLead&&<ActivityModal lead={activityLead} onClose={()=>setActivityLead(null)} onSave={saveActivity}/>}
     {lossLead&&<LossModal lead={lossLead} onClose={()=>setLossLead(null)} onConfirm={reason=>confirmLoss(lossLead,reason)}/>}
     {showImport&&<ImportModal onClose={()=>{setShowImport(false);fetchAll()}} onImport={handleImport} defaultCountry={!isRegional?userCountry:'Chile'}/>}
-    {toast&&<div style={{position:'fixed',bottom:22,right:22,background:toast.type==='success'?'#10B981':'#EF4444',color:'white',padding:'11px 18px',borderRadius:10,fontSize:13,fontWeight:600,boxShadow:'0 8px 32px rgba(0,0,0,0.4)',zIndex:9999,animation:'slideIn 0.3s ease'}}>{toast.msg}</div>}
+    {showImportProspects&&<ImportProspectsModal onClose={()=>{setShowImportProspects(false);fetchAll()}} onImport={handleImportProspects} defaultCountry={!isRegional?userCountry:'Chile'}/>}
+    {toast&&<div style={{position:'fixed',bottom:22,right:22,background:toast.type==='success'?'#5CBB00':'#EF4444',color:'white',padding:'11px 18px',borderRadius:10,fontSize:13,fontWeight:600,boxShadow:'0 8px 32px rgba(0,0,0,0.4)',zIndex:9999,animation:'slideIn 0.3s ease'}}>{toast.msg}</div>}
   </div>
 }
 
@@ -1022,7 +1255,7 @@ function AppContent(){
   const{user,loading}=useAuth()
   if(loading)return <div style={{minHeight:'100vh',background:'#080C12',display:'flex',alignItems:'center',justifyContent:'center'}}>
     <div style={{textAlign:'center',color:'#64748B',fontSize:14}}>
-      <div style={{width:44,height:44,background:'linear-gradient(135deg,#10B981,#059669)',borderRadius:12,display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:20,fontWeight:800,color:'white',marginBottom:16}}>W</div>
+      <div style={{marginBottom:16,display:'flex',justifyContent:'center'}}><WynLogo size={28}/></div>
       <div>Cargando...</div>
     </div>
   </div>
