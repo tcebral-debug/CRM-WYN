@@ -1097,6 +1097,7 @@ function CRMApp(){
   const[showImportProspects,setShowImportProspects]=useState(false)
   const[sidebarCollapsed,setSidebarCollapsed]=useState(false)
   const[toast,setToast]=useState(null)
+  const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3500)}
 
   const[showDailyAlert,setShowDailyAlert]=useState(false)
   const[dailyAlertDismissed,setDailyAlertDismissed]=useState(false)
@@ -1370,3 +1371,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>)
 
   
 </html>
+
