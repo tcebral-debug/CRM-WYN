@@ -360,23 +360,33 @@ function LossModal({lead,onClose,onConfirm}){
 }
 
 // ── ACTIVITY MODAL ────────────────────────────────────────
-function ActivityModal({lead,onClose,onSave}){
-  const[form,setForm]=useState({lead_id:lead?.id||'',tipo:'Llamada',fecha:new Date().toISOString().split('T')[0],descripcion:'',ejecutivo:''})
+function ActivityModal({lead,activity,onClose,onSave}){
+  const[form,setForm]=useState(activity||{lead_id:lead?.id||'',tipo:'Llamada',fecha:new Date().toISOString().split('T')[0],fecha_vencimiento:'',descripcion:'',ejecutivo:'',proximo_paso:'',realizada:false})
   const[saving,setSaving]=useState(false)
   const f=(k,v)=>setForm(p=>({...p,[k]:v}))
-  return <Modal title={`Nueva Actividad — ${lead?.empresa}`} onClose={onClose}>
-    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+  const isEdit=!!activity?.id
+  return <Modal title={isEdit?`Editar Actividad — ${lead?.empresa||''}`:`Nueva Actividad — ${lead?.empresa||''}`} onClose={onClose}>
+    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
       <FInput label="Tipo" value={form.tipo} onChange={v=>f('tipo',v)} options={ACTIVITY_TYPES}/>
-      <FInput label="Fecha" value={form.fecha} onChange={v=>f('fecha',v)} type="date"/>
       <FInput label="Ejecutivo" value={form.ejecutivo} onChange={v=>f('ejecutivo',v)}/>
-      <div style={{display:'flex',flexDirection:'column',gap:4}}>
+      <FInput label="Fecha actividad" value={form.fecha} onChange={v=>f('fecha',v)} type="date"/>
+      <FInput label="Fecha vencimiento" value={form.fecha_vencimiento} onChange={v=>f('fecha_vencimiento',v)} type="date"/>
+      <div style={{gridColumn:'1/-1',display:'flex',flexDirection:'column',gap:4}}>
         <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase'}}>Descripción</label>
-        <textarea value={form.descripcion} onChange={e=>f('descripcion',e.target.value)} rows={4} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'vertical',width:'100%',outline:'none',boxSizing:'border-box'}}/>
+        <textarea value={form.descripcion} onChange={e=>f('descripcion',e.target.value)} rows={3} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'vertical',width:'100%',outline:'none',boxSizing:'border-box'}}/>
       </div>
+      <div style={{gridColumn:'1/-1',display:'flex',flexDirection:'column',gap:4}}>
+        <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase'}}>Próximo paso</label>
+        <input value={form.proximo_paso||''} onChange={e=>f('proximo_paso',e.target.value)} placeholder="¿Qué sigue después de esta actividad?" style={{background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,outline:'none',boxSizing:'border-box',width:'100%'}}/>
+      </div>
+      {isEdit&&<label style={{gridColumn:'1/-1',display:'flex',alignItems:'center',gap:10,cursor:'pointer',padding:'10px',background:'#1E2535',borderRadius:8,border:'1px solid #2D3748'}}>
+        <input type="checkbox" checked={form.realizada||false} onChange={e=>f('realizada',e.target.checked)} style={{width:18,height:18,cursor:'pointer'}}/>
+        <span style={{fontSize:13,color:'#E2E8F0',fontWeight:500}}>Marcar como realizada ✅</span>
+      </label>}
     </div>
     <div style={{display:'flex',justifyContent:'flex-end',gap:10,marginTop:18}}>
       <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
-      <GreenBtn onClick={async()=>{setSaving(true);await onSave(form);setSaving(false)}} disabled={saving}>{saving?'Guardando...':'Registrar'}</GreenBtn>
+      <GreenBtn onClick={async()=>{setSaving(true);await onSave(form);setSaving(false)}} disabled={saving}>{saving?'Guardando...':isEdit?'Actualizar':'Registrar'}</GreenBtn>
     </div>
   </Modal>
 }
@@ -728,24 +738,44 @@ function AccountsView({accounts,onBPM}){
 }
 
 // ── ACTIVITIES VIEW ───────────────────────────────────────
-function ActivitiesView({activities,leads}){
+function ActivitiesView({activities,leads,onEdit,onToggleDone}){
   const leadIds=new Set(leads.map(l=>l.id))
   const filtered=activities.filter(a=>leadIds.has(a.lead_id))
+  const[showDone,setShowDone]=useState(false)
+  const today=new Date().toISOString().split('T')[0]
+  const pending=filtered.filter(a=>!a.realizada)
+  const done=filtered.filter(a=>a.realizada)
+  const visible=showDone?filtered:pending
   if(!filtered.length)return <EmptyState icon="📋" title="Sin actividades" sub="Registrá desde la vista de Leads"/>
-  return <div style={{display:'flex',flexDirection:'column',gap:10}}>
-    {filtered.map(act=>{
+  return <div style={{display:'flex',flexDirection:'column',gap:12}}>
+    <div style={{display:'flex',gap:10,alignItems:'center'}}>
+      <span style={{fontSize:13,color:'#94A3B8'}}>{pending.length} pendientes · {done.length} realizadas</span>
+      <button onClick={()=>setShowDone(!showDone)} style={{marginLeft:'auto',padding:'6px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#64748B',fontSize:12,cursor:'pointer'}}>
+        {showDone?'Ocultar realizadas':'Ver realizadas'}
+      </button>
+    </div>
+    {visible.map(act=>{
       const lead=leads.find(l=>l.id===act.lead_id)
-      return <Card key={act.id} style={{padding:'12px 16px'}}>
+      const isOverdue=act.fecha_vencimiento&&act.fecha_vencimiento<today&&!act.realizada
+      const isDueToday=act.fecha_vencimiento===today&&!act.realizada
+      return <Card key={act.id} style={{padding:'12px 16px',opacity:act.realizada?0.6:1,borderColor:isOverdue?'#EF444444':isDueToday?'#F59E0B44':'#1E2535'}}>
         <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
-          <div style={{width:34,height:34,borderRadius:8,background:(ACTIVITY_COLORS[act.tipo]||'#64748B')+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}}>{ACTIVITY_ICONS[act.tipo]||'📌'}</div>
+          <div onClick={()=>onToggleDone(act)} style={{width:34,height:34,borderRadius:8,background:act.realizada?'#5CBB0022':(ACTIVITY_COLORS[act.tipo]||'#64748B')+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,cursor:'pointer',border:`2px solid ${act.realizada?'#5CBB00':'transparent'}`}} title={act.realizada?'Marcar como pendiente':'Marcar como realizada'}>
+            {act.realizada?'✅':ACTIVITY_ICONS[act.tipo]||'📌'}
+          </div>
           <div style={{flex:1}}>
             <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:4,flexWrap:'wrap'}}>
-              <Badge text={act.tipo} color={ACTIVITY_COLORS[act.tipo]||'#64748B'}/>
+              <Badge text={act.tipo} color={act.realizada?'#5CBB00':ACTIVITY_COLORS[act.tipo]||'#64748B'}/>
               <span style={{fontSize:12,fontWeight:600,color:'#F1F5F9'}}>{lead?.empresa||'—'}</span>
-              <span style={{fontSize:11,color:'#64748B'}}>· {act.fecha} · {act.ejecutivo}</span>
+              <span style={{fontSize:11,color:'#64748B'}}>· {act.fecha}{act.ejecutivo?` · ${act.ejecutivo}`:''}</span>
+              {isOverdue&&<span style={{fontSize:11,color:'#EF4444',fontWeight:600}}>⚠ Vencida {act.fecha_vencimiento}</span>}
+              {isDueToday&&<span style={{fontSize:11,color:'#F59E0B',fontWeight:600}}>🔔 Vence hoy</span>}
+              {act.fecha_vencimiento&&!isOverdue&&!isDueToday&&!act.realizada&&<span style={{fontSize:11,color:'#64748B'}}>· vence {act.fecha_vencimiento}</span>}
             </div>
-            <p style={{margin:0,fontSize:12,color:'#94A3B8',lineHeight:1.5}}>{act.descripcion}</p>
+            {act.descripcion&&<p style={{margin:'0 0 6px',fontSize:12,color:'#94A3B8',lineHeight:1.5}}>{act.descripcion}</p>}
+            {act.proximo_paso&&<div style={{background:'#1E2535',borderRadius:6,padding:'6px 10px',fontSize:11,color:'#5CBB00'}}><span style={{color:'#64748B'}}>Próx. paso: </span>{act.proximo_paso}</div>}
           </div>
+          <button onClick={()=>onEdit(act,lead)} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:6,padding:'4px 10px',fontSize:11,cursor:'pointer',flexShrink:0}}>✎ Editar</button>
         </div>
       </Card>
     })}
@@ -778,37 +808,40 @@ function ProductModal({product,onClose,onSave}){
 }
 
 // ── PRODUCTS VIEW ─────────────────────────────────────────
-function ProductsView({products,isRegional,onSave,onDelete}){
+function ProductsView({products,isRegional,canEdit,userCountry,onSave,onDelete}){
   const[showModal,setShowModal]=useState(false)
   const[editProduct,setEditProduct]=useState(null)
   const[confirmDelete,setConfirmDelete]=useState(null)
-  if(!products.length&&!isRegional)return <EmptyState icon="📦" title="Sin productos cargados"/>
+  if(!products.length&&!canEdit)return <EmptyState icon="📦" title="Sin productos cargados"/>
   return <div style={{display:'flex',flexDirection:'column',gap:16}}>
-    {isRegional&&<div style={{display:'flex',justifyContent:'flex-end'}}>
+    {canEdit&&<div style={{display:'flex',justifyContent:'flex-end'}}>
       <GreenBtn onClick={()=>{setEditProduct(null);setShowModal(true)}}>+ Nuevo Producto</GreenBtn>
     </div>}
     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:14}}>
-      {products.filter(p=>p.active!==false).map(p=><Card key={p.id}>
-        <div style={{marginBottom:10}}>
-          <div style={{fontSize:14,fontWeight:700,color:'#F1F5F9',marginBottom:6}}>{p.servicio}</div>
-          <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
-            <Badge text={p.country} color="#3B82F6"/>
-            {p.modalidad&&<Badge text={p.modalidad} color="#64748B"/>}
-            {p.tipo_entrega&&<Badge text={p.tipo_entrega} color="#007B84"/>}
+      {products.filter(p=>p.active!==false).map(p=>{
+        const canEditThis=isRegional||(userCountry&&p.country===userCountry)
+        return <Card key={p.id}>
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:14,fontWeight:700,color:'#F1F5F9',marginBottom:6}}>{p.servicio}</div>
+            <div style={{display:'flex',gap:5,flexWrap:'wrap'}}>
+              <Badge text={p.country} color="#3B82F6"/>
+              {p.modalidad&&<Badge text={p.modalidad} color="#64748B"/>}
+              {p.tipo_entrega&&<Badge text={p.tipo_entrega} color="#007B84"/>}
+            </div>
           </div>
-        </div>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
-          <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>Tarifa</div><div style={{fontSize:16,fontWeight:700,color:'#5CBB00'}}>{p.moneda} {p.tarifa}</div></div>
-          <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>SLA</div><div style={{fontSize:14,fontWeight:700,color:'#F59E0B'}}>{p.sla}</div></div>
-        </div>
-        {p.condiciones&&<div style={{fontSize:11,color:'#64748B',marginBottom:10}}><strong style={{color:'#94A3B8'}}>Condiciones:</strong> {p.condiciones}</div>}
-        {isRegional&&<div style={{display:'flex',gap:6,marginTop:8}}>
-          <MiniBtn onClick={()=>{setEditProduct(p);setShowModal(true)}} color="#3B82F6">✎ Editar</MiniBtn>
-          <MiniBtn onClick={()=>setConfirmDelete(p)} color="#EF4444">🗑 Eliminar</MiniBtn>
-        </div>}
-      </Card>)}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
+            <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>Tarifa</div><div style={{fontSize:16,fontWeight:700,color:'#5CBB00'}}>{p.moneda} {p.tarifa}</div></div>
+            <div style={{background:'#1E2535',borderRadius:8,padding:'8px 10px'}}><div style={{fontSize:10,color:'#64748B'}}>SLA</div><div style={{fontSize:14,fontWeight:700,color:'#F59E0B'}}>{p.sla}</div></div>
+          </div>
+          {p.condiciones&&<div style={{fontSize:11,color:'#64748B',marginBottom:10}}><strong style={{color:'#94A3B8'}}>Condiciones:</strong> {p.condiciones}</div>}
+          {canEditThis&&<div style={{display:'flex',gap:6,marginTop:8}}>
+            <MiniBtn onClick={()=>{setEditProduct(p);setShowModal(true)}} color="#3B82F6">✎ Editar</MiniBtn>
+            <MiniBtn onClick={()=>setConfirmDelete(p)} color="#64748B">Eliminar</MiniBtn>
+          </div>}
+        </Card>
+      })}
     </div>
-    {showModal&&<ProductModal product={editProduct} onClose={()=>{setShowModal(false);setEditProduct(null)}} onSave={onSave}/>}
+    {showModal&&<ProductModal product={editProduct} onClose={()=>{setShowModal(false);setEditProduct(null)}} onSave={onSave} defaultCountry={!isRegional?userCountry:undefined}/>}
     {confirmDelete&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2000}}>
       <div style={{background:'#141820',border:'1px solid #EF444444',borderRadius:16,padding:28,width:380,textAlign:'center'}}>
         <div style={{fontSize:32,marginBottom:12}}>🗑️</div>
@@ -995,6 +1028,49 @@ function ImportProspectsModal({onClose,onImport,defaultCountry}){
   </Modal>
 }
 
+// ── DAILY ALERT MODAL ─────────────────────────────────────
+function DailyAlertModal({activities,leads,onClose,onGo}){
+  const today=new Date().toISOString().split('T')[0]
+  const todayActs=activities.filter(a=>!a.realizada&&(a.fecha_vencimiento===today||a.fecha===today))
+  const overdue=activities.filter(a=>!a.realizada&&a.fecha_vencimiento&&a.fecha_vencimiento<today)
+  return <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:3000}}>
+    <div style={{background:'#141820',border:'1px solid #F59E0B44',borderRadius:16,padding:28,width:460,maxHeight:'80vh',overflow:'auto'}}>
+      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20}}>
+        <div style={{fontSize:28}}>🔔</div>
+        <div>
+          <div style={{fontSize:16,fontWeight:700,color:'#F1F5F9'}}>Actividades pendientes hoy</div>
+          <div style={{fontSize:12,color:'#64748B'}}>{new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})}</div>
+        </div>
+      </div>
+      {overdue.length>0&&<div style={{background:'#EF444415',border:'1px solid #EF444433',borderRadius:10,padding:'10px 14px',marginBottom:14}}>
+        <div style={{fontSize:12,fontWeight:600,color:'#EF4444',marginBottom:8}}>⚠ {overdue.length} actividad{overdue.length>1?'es':''} vencida{overdue.length>1?'s':''}</div>
+        {overdue.slice(0,3).map(a=>{
+          const lead=leads.find(l=>l.id===a.lead_id)
+          return <div key={a.id} style={{fontSize:12,color:'#F87171',marginBottom:4}}>• {lead?.empresa||'—'} — {a.tipo} (vencía {a.fecha_vencimiento})</div>
+        })}
+      </div>}
+      {todayActs.length>0&&<div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:20}}>
+        {todayActs.map(a=>{
+          const lead=leads.find(l=>l.id===a.lead_id)
+          return <div key={a.id} style={{background:'#1A1F2E',border:'1px solid #F59E0B33',borderRadius:8,padding:'10px 14px',display:'flex',gap:10,alignItems:'flex-start'}}>
+            <span style={{fontSize:16,flexShrink:0}}>{ACTIVITY_ICONS[a.tipo]||'📌'}</span>
+            <div>
+              <div style={{fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{lead?.empresa||'—'}</div>
+              <div style={{fontSize:11,color:'#94A3B8'}}>{a.tipo}{a.descripcion?` — ${a.descripcion.substring(0,60)}...`:''}</div>
+              {a.proximo_paso&&<div style={{fontSize:11,color:'#5CBB00',marginTop:3}}>→ {a.proximo_paso}</div>}
+            </div>
+          </div>
+        })}
+      </div>}
+      {todayActs.length===0&&overdue.length===0&&<div style={{textAlign:'center',padding:'20px 0',color:'#64748B',fontSize:13}}>No hay actividades para hoy 🎉</div>}
+      <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
+        <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cerrar</button>
+        <GreenBtn onClick={onGo}>Ver actividades →</GreenBtn>
+      </div>
+    </div>
+  </div>
+}
+
 // ── MAIN APP ──────────────────────────────────────────────
 const NAV=[{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'pipeline',icon:'🔀',label:'Pipeline'},{id:'leads',icon:'🎯',label:'Leads'},{id:'prospects',icon:'🔍',label:'Prospectos'},{id:'accounts',icon:'🏢',label:'Cuentas'},{id:'activities',icon:'📋',label:'Actividades'},{id:'products',icon:'📦',label:'Productos & Tarifas'},{id:'reports',icon:'📈',label:'Reportes'}]
 
@@ -1015,13 +1091,23 @@ function CRMApp(){
   const[showProspectModal,setShowProspectModal]=useState(false)
   const[bpmEntity,setBpmEntity]=useState(null)
   const[activityLead,setActivityLead]=useState(null)
+  const[editActivityData,setEditActivityData]=useState(null)
   const[lossLead,setLossLead]=useState(null)
   const[showImport,setShowImport]=useState(false)
   const[showImportProspects,setShowImportProspects]=useState(false)
   const[sidebarCollapsed,setSidebarCollapsed]=useState(false)
   const[toast,setToast]=useState(null)
 
-  const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3500)}
+  const[showDailyAlert,setShowDailyAlert]=useState(false)
+  const[dailyAlertDismissed,setDailyAlertDismissed]=useState(false)
+
+  useEffect(()=>{
+    if(!loading&&activities.length&&!dailyAlertDismissed){
+      const today=new Date().toISOString().split('T')[0]
+      const todayActs=activities.filter(a=>!a.realizada&&(a.fecha_vencimiento===today||a.fecha===today))
+      if(todayActs.length>0)setShowDailyAlert(true)
+    }
+  },[loading,activities,dailyAlertDismissed])
   const effectiveCountry=isRegional?selectedCountry:userCountry
   const countryFilter=useCallback(items=>{
     if(effectiveCountry==='LATAM') return items
@@ -1109,14 +1195,29 @@ function CRMApp(){
   }
 
   async function saveActivity(data){
-    const{data:act,error}=await sb.from('activities').insert([{...data,created_by:profile?.id}]).select().single()
-    if(!error){
-      setActivities(prev=>[act,...prev])
-      await sb.from('leads').update({last_interaction:data.fecha}).eq('id',data.lead_id)
-      setLeads(prev=>prev.map(l=>l.id===data.lead_id?{...l,last_interaction:data.fecha}:l))
-      showToast('Actividad registrada ✅')
+    if(data.id){
+      const{error}=await sb.from('activities').update(data).eq('id',data.id)
+      if(!error){setActivities(prev=>prev.map(a=>a.id===data.id?{...a,...data}:a));showToast('Actividad actualizada ✅')}
+      else showToast('Error al guardar','error')
+    }else{
+      const{data:act,error}=await sb.from('activities').insert([{...data,created_by:profile?.id}]).select().single()
+      if(!error){
+        setActivities(prev=>[act,...prev])
+        await sb.from('leads').update({last_interaction:data.fecha}).eq('id',data.lead_id)
+        setLeads(prev=>prev.map(l=>l.id===data.lead_id?{...l,last_interaction:data.fecha}:l))
+        showToast('Actividad registrada ✅')
+      }
     }
     setActivityLead(null)
+    setEditActivityData(null)
+  }
+
+  async function toggleActivityDone(act){
+    const{error}=await sb.from('activities').update({realizada:!act.realizada}).eq('id',act.id)
+    if(!error){
+      setActivities(prev=>prev.map(a=>a.id===act.id?{...a,realizada:!act.realizada}:a))
+      showToast(act.realizada?'Marcada como pendiente':'Actividad completada ✅')
+    }
   }
 
   async function saveProduct(data){
@@ -1230,8 +1331,8 @@ function CRMApp(){
           {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead}/>}
           {view==='prospects'&&<ProspectsView prospects={fProspects} onEdit={p=>{setEditProspect(p);setShowProspectModal(true)}} onConvert={convertProspectToLead}/>}
           {view==='accounts'&&<AccountsView accounts={fAccounts} onBPM={setBpmEntity}/>}
-          {view==='activities'&&<ActivitiesView activities={activities} leads={fLeads}/>}
-          {view==='products'&&<ProductsView products={fProducts} isRegional={isRegional} onSave={saveProduct} onDelete={deleteProduct}/>}
+          {view==='activities'&&<ActivitiesView activities={activities} leads={fLeads} onEdit={(act,lead)=>{setEditActivityData({act,lead});setActivityLead(lead)}} onToggleDone={toggleActivityDone}/>}
+          {view==='products'&&<ProductsView products={fProducts} isRegional={isRegional} canEdit={isRegional||profile?.role==='ejecutivo'} userCountry={userCountry} onSave={saveProduct} onDelete={deleteProduct}/>}
           {view==='reports'&&<ReportsView leads={fLeads} accounts={fAccounts}/>}
         </>}
       </div>
@@ -1240,7 +1341,8 @@ function CRMApp(){
     {showLeadModal&&<LeadModal lead={editLead} onClose={()=>{setShowLeadModal(false);setEditLead(null)}} onSave={saveLead} defaultCountry={!isRegional?userCountry:undefined}/>}
     {showProspectModal&&<ProspectModal prospect={editProspect} onClose={()=>{setShowProspectModal(false);setEditProspect(null)}} onSave={saveProspect} defaultCountry={!isRegional?userCountry:undefined}/>}
     {bpmEntity&&<BPMModal entity={bpmEntity} onClose={()=>setBpmEntity(null)} onSave={saveBPM}/>}
-    {activityLead&&<ActivityModal lead={activityLead} onClose={()=>setActivityLead(null)} onSave={saveActivity}/>}
+    {activityLead&&<ActivityModal lead={activityLead} activity={editActivityData?.act||null} onClose={()=>{setActivityLead(null);setEditActivityData(null)}} onSave={saveActivity}/>}
+    {showDailyAlert&&<DailyAlertModal activities={activities} leads={leads} onClose={()=>{setShowDailyAlert(false);setDailyAlertDismissed(true)}} onGo={()=>{setShowDailyAlert(false);setDailyAlertDismissed(true);setView('activities')}}/>}
     {lossLead&&<LossModal lead={lossLead} onClose={()=>setLossLead(null)} onConfirm={reason=>confirmLoss(lossLead,reason)}/>}
     {showImport&&<ImportModal onClose={()=>{setShowImport(false);fetchAll()}} onImport={handleImport} defaultCountry={!isRegional?userCountry:'Chile'}/>}
     {showImportProspects&&<ImportProspectsModal onClose={()=>{setShowImportProspects(false);fetchAll()}} onImport={handleImportProspects} defaultCountry={!isRegional?userCountry:'Chile'}/>}
@@ -1268,4 +1370,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>)
 
   
 </html>
-
