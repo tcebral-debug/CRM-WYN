@@ -24,20 +24,16 @@ body{background:#0F1117;font-family:'Roboto','DM Sans',sans-serif;color:#E2E8F0}
 <div id="root"></div>
 <script type="text/babel">
 
-// ── CONFIG — REEMPLAZÁ CON TUS DATOS DE SUPABASE ──────────
 const SUPABASE_URL = 'https://ixvgpkxhqufbxewzvzcg.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4dmdwa3hocXVmYnhld3p2emNnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyNDI1MTgsImV4cCI6MjA4ODgxODUxOH0.EMe_m6g45eUFifexyheC5wXYnRNvsNnVFOk7MQFLwAg'
-// ──────────────────────────────────────────────────────────
 
 const { createClient } = supabase
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const { useState, useEffect, useCallback, useContext, createContext, useRef } = React
 
-const { useState, useEffect, useCallback, useContext, createContext } = React
-
-// ── CONSTANTS ─────────────────────────────────────────────
 const COUNTRIES = ["Regional","Argentina","Chile","Colombia","Costa Rica","El Salvador","Perú","República Dominicana"]
 const ALL_COUNTRIES_FILTER = "LATAM"
-const PIPELINE_STAGES = ["Primer Contacto","Reunión","Propuesta Enviada","Re-Propuesta","Ganado","Perdido"]
+const PIPELINE_STAGES = ["Primer Contacto","Reunión","Propuesta Enviada","Propuesta Ganada","Ganado","Perdido"]
 const TIERS = ["Tier 1","Tier 2","Tier 3","Tier 4"]
 const BPM_TASKS = ["Crear Cliente","Agreement","Tarifas","Integración configurada","Alta operativa","Facturación configurada","Go Live"]
 const MODALITIES = ["B2C","B2B","B2B2C"]
@@ -48,21 +44,17 @@ const INTEGRATION_TYPES = ["API REST","Shopify","WooCommerce","VTEX","Magento","
 const CURRENCIES = ["USD","ARS","CLP","COP","CRC","PEN","DOP"]
 const ACTIVITY_TYPES = ["Llamada","Email","Reunión","Tarea"]
 const LOSS_REASONS = ["Precio","Competidor","Sin respuesta","Timing","Servicio no aplica","Volumen insuficiente","Otro"]
-const STAGE_COLORS = {"Primer Contacto":"#3B82F6","Reunión":"#8B5CF6","Propuesta Enviada":"#F59E0B","Re-Propuesta":"#F97316","Ganado":"#5CBB00","Perdido":"#EF4444"}
+const STAGE_COLORS = {"Primer Contacto":"#3B82F6","Reunión":"#8B5CF6","Propuesta Enviada":"#F59E0B","Propuesta Ganada":"#89D44A","Ganado":"#5CBB00","Perdido":"#EF4444"}
 const ACTIVITY_ICONS = {"Llamada":"📞","Email":"📧","Reunión":"🤝","Tarea":"✅"}
 const ACTIVITY_COLORS = {"Llamada":"#3B82F6","Email":"#8B5CF6","Reunión":"#5CBB00","Tarea":"#F59E0B"}
-const EXCEL_STATUS_MAP = {'Primer Contacto (Contactado)':'Primer Contacto','Primer Contacto':'Primer Contacto','Reunión (En Proceso / Visitado)':'Reunión','Reunión':'Reunión','Propuesta Enviada':'Propuesta Enviada','Re-Propuesta':'Re-Propuesta','Onboarding':'Ganado','Ganado':'Ganado','Perdido':'Perdido'}
+const EXCEL_STATUS_MAP = {'Primer Contacto (Contactado)':'Primer Contacto','Primer Contacto':'Primer Contacto','Reunión (En Proceso / Visitado)':'Reunión','Reunión':'Reunión','Propuesta Enviada':'Propuesta Enviada','Re-Propuesta':'Propuesta Ganada','Propuesta Ganada':'Propuesta Ganada','Onboarding':'Ganado','Ganado':'Ganado','Perdido':'Perdido'}
 const STALE_DAYS = 7
 
-// ── UTILS ─────────────────────────────────────────────────
 const stageColor = s => STAGE_COLORS[s] || '#6B7280'
 const fmtNum = n => n != null && n !== '' ? Number(n).toLocaleString('es-AR') : '—'
 const fmtCur = n => n ? `$${Number(n).toLocaleString('es-AR')}` : '—'
 const progressColor = p => p === 100 ? '#5CBB00' : p >= 50 ? '#F59E0B' : p > 0 ? '#3B82F6' : '#EF4444'
-function tierFromVolumen(vol) {
-  const v = parseFloat(vol)||0
-  if(v>9999)return'Tier 1';if(v>2500)return'Tier 2';if(v>=500)return'Tier 3';return'Tier 4'
-}
+function tierFromVolumen(vol){const v=parseFloat(vol)||0;if(v>9999)return'Tier 1';if(v>2500)return'Tier 2';if(v>=500)return'Tier 3';return'Tier 4'}
 function daysSince(d){if(!d)return 999;return Math.floor((Date.now()-new Date(d).getTime())/(86400000))}
 function isStale(lead,activities){
   if(lead.status==='Ganado'||lead.status==='Perdido')return false
@@ -118,7 +110,7 @@ function AuthProvider({children}){
 }
 const useAuth=()=>useContext(AuthContext)
 
-// ── WYN LOGO ──────────────────────────────────────────────
+// ── LOGOS ─────────────────────────────────────────────────
 function WynLogo({height=40}){
   return <svg width={height*4.5} height={height*1.6} viewBox="0 0 225 80" xmlns="http://www.w3.org/2000/svg">
     <path d="M2 5 L17 55 L32 24 L47 55 L62 5" fill="none" stroke="white" strokeWidth="12" strokeLinecap="square" strokeLinejoin="miter"/>
@@ -151,7 +143,7 @@ function GreenBtn({onClick,children,small,disabled,style}){
 }
 function Card({children,style}){return <div style={{background:'#141820',border:'1px solid #1E2535',borderRadius:12,padding:20,...style}}>{children}</div>}
 function StatCard({label,value,sub,color='#5CBB00',icon}){
-  return <Card style={{flex:1,minWidth:150}}>
+  return <Card style={{flex:1,minWidth:140}}>
     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}}>
       <span style={{fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:1}}>{label}</span>
       <span style={{fontSize:18}}>{icon}</span>
@@ -161,7 +153,7 @@ function StatCard({label,value,sub,color='#5CBB00',icon}){
   </Card>
 }
 function Badge({text,color='#5CBB00'}){return <span style={{background:color+'22',color,fontSize:11,fontWeight:600,padding:'3px 8px',borderRadius:20,whiteSpace:'nowrap'}}>{text}</span>}
-function MiniBtn({onClick,children,color}){return <button onClick={onClick} style={{background:'#1A1B1B',border:`1px solid #333`,color:'#94A3B8',fontSize:10,padding:'4px 8px',borderRadius:6,cursor:'pointer',fontWeight:500,whiteSpace:'nowrap',fontFamily:'Roboto,Arial,sans-serif'}}>{children}</button>}
+function MiniBtn({onClick,children,color}){return <button onClick={onClick} style={{background:'#1A1B1B',border:'1px solid #333',color:'#94A3B8',fontSize:10,padding:'4px 8px',borderRadius:6,cursor:'pointer',fontWeight:500,whiteSpace:'nowrap',fontFamily:'Roboto,Arial,sans-serif'}}>{children}</button>}
 function Loader({text='Cargando...'}){
   return <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:60,gap:16}}>
     <div style={{width:36,height:36,border:'3px solid #1E2535',borderTop:'3px solid #5CBB00',borderRadius:'50%',animation:'spin 0.8s linear infinite'}}/>
@@ -246,6 +238,111 @@ function LoginPage(){
   </div>
 }
 
+// ── QUICK LEAD MODAL ──────────────────────────────────────
+function QuickLeadModal({onClose,onSave,defaultCountry}){
+  const[form,setForm]=useState({country:defaultCountry||'',empresa:'',contacto:'',status:'Primer Contacto'})
+  const[saving,setSaving]=useState(false)
+  const[error,setError]=useState('')
+  const f=(k,v)=>setForm(p=>({...p,[k]:v}))
+  async function handleSave(){
+    if(!form.empresa.trim()){setError('El nombre de empresa es requerido');return}
+    if(!form.country){setError('Seleccioná un país');return}
+    setSaving(true)
+    await onSave({...form,tier:'Tier 3',volumen:0,revenue:0,margen:0,tarifa:0,progress_to_won:10})
+    setSaving(false)
+  }
+  return <Modal title="Nuevo Lead Rápido" onClose={onClose} subtitle="Completá los datos esenciales">
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <FInput label="País" value={form.country} onChange={v=>f('country',v)} options={COUNTRIES} required/>
+      <FInput label="Empresa" value={form.empresa} onChange={v=>f('empresa',v)} required/>
+      <FInput label="Contacto" value={form.contacto} onChange={v=>f('contacto',v)}/>
+      <FInput label="Status" value={form.status} onChange={v=>f('status',v)} options={PIPELINE_STAGES}/>
+      {error&&<div style={{background:'#EF444415',border:'1px solid #EF444440',borderRadius:8,padding:'8px 12px',fontSize:12,color:'#EF4444'}}>{error}</div>}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}>
+        <span style={{fontSize:11,color:'#64748B'}}>Podés completar más datos luego desde la vista de Leads</span>
+        <div style={{display:'flex',gap:10}}>
+          <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
+          <GreenBtn onClick={handleSave} disabled={saving}>{saving?'Guardando...':'Crear Lead'}</GreenBtn>
+        </div>
+      </div>
+    </div>
+  </Modal>
+}
+
+// ── STAGE HISTORY COMPONENT ───────────────────────────────
+function StageHistory({history}){
+  if(!history||!history.length)return <div style={{fontSize:12,color:'#64748B',padding:'12px 0'}}>Sin historial de cambios de etapa</div>
+  return <div style={{display:'flex',flexDirection:'column',gap:8}}>
+    {[...history].reverse().map((h,i)=>(
+      <div key={i} style={{display:'flex',alignItems:'flex-start',gap:10,padding:'10px 12px',background:'#1A1F2E',borderRadius:8,border:'1px solid #1E2535'}}>
+        <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,flexShrink:0}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:stageColor(h.to),marginTop:3}}/>
+          {i<history.length-1&&<div style={{width:1,height:16,background:'#2D3748'}}/>}
+        </div>
+        <div style={{flex:1}}>
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+            <Badge text={h.from||'Inicio'} color={stageColor(h.from)||'#64748B'}/>
+            <span style={{color:'#64748B',fontSize:11}}>→</span>
+            <Badge text={h.to} color={stageColor(h.to)}/>
+            {h.loss_reason&&<Badge text={h.loss_reason} color="#EF4444"/>}
+          </div>
+          <div style={{fontSize:11,color:'#64748B',marginTop:4}}>
+            {h.at?new Date(h.at).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—'}
+            {h.by&&<span style={{marginLeft:6}}>· {h.by}</span>}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+}
+
+// ── LEAD DETAIL MODAL (with stage history) ────────────────
+function LeadDetailModal({lead,onClose,onEdit,activities}){
+  const leadActs=activities.filter(a=>a.lead_id===lead.id)
+  const[tab,setTab]=useState('info')
+  return <Modal title={lead.empresa} onClose={onClose} wide subtitle={`${lead.country} · ${lead.status}`}>
+    <div style={{display:'flex',gap:8,marginBottom:18}}>
+      {[['info','📋 Info'],['history','🔄 Historial de etapas'],['activities','📞 Actividades']].map(([id,label])=>(
+        <button key={id} onClick={()=>setTab(id)} style={{padding:'6px 14px',borderRadius:20,border:`1px solid ${tab===id?stageColor(lead.status):'#2D3748'}`,background:tab===id?stageColor(lead.status)+'22':'transparent',color:tab===id?stageColor(lead.status):'#64748B',fontSize:12,cursor:'pointer',fontWeight:tab===id?600:400}}>{label}</button>
+      ))}
+      <div style={{marginLeft:'auto'}}>
+        <GreenBtn small onClick={()=>{onClose();onEdit(lead)}}>✎ Editar lead</GreenBtn>
+      </div>
+    </div>
+    {tab==='info'&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+      {[['Contacto',lead.contacto],['Email',lead.email],['Teléfono',lead.phone],['Tier',lead.tier],['Volumen/mes',lead.volumen?fmtNum(lead.volumen):null],['Revenue Est.',lead.revenue?fmtCur(lead.revenue):null],['Expected Close',lead.expected_close],['Último contacto',lead.last_interaction]].map(([k,v])=>v?<div key={k} style={{background:'#1E2535',borderRadius:8,padding:'10px 12px'}}>
+        <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:3}}>{k}</div>
+        <div style={{fontSize:13,color:'#F1F5F9',fontWeight:500}}>{v}</div>
+      </div>:null)}
+      {lead.next_step&&<div style={{gridColumn:'1/-1',background:'#5CBB0015',border:'1px solid #5CBB0033',borderRadius:8,padding:'10px 12px'}}>
+        <div style={{fontSize:10,color:'#5CBB00',textTransform:'uppercase',marginBottom:3}}>Próximo paso</div>
+        <div style={{fontSize:13,color:'#F1F5F9'}}>{lead.next_step}</div>
+      </div>}
+      {lead.comments&&<div style={{gridColumn:'1/-1',background:'#1E2535',borderRadius:8,padding:'10px 12px'}}>
+        <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:3}}>Comentarios</div>
+        <div style={{fontSize:13,color:'#94A3B8',lineHeight:1.5}}>{lead.comments}</div>
+      </div>}
+    </div>}
+    {tab==='history'&&<div>
+      <div style={{fontSize:12,color:'#64748B',marginBottom:14}}>Registro de todos los cambios de etapa para este lead</div>
+      <StageHistory history={lead.stage_history}/>
+    </div>}
+    {tab==='activities'&&<div style={{display:'flex',flexDirection:'column',gap:8}}>
+      {!leadActs.length?<EmptyState icon="📋" title="Sin actividades" sub="Registrá actividades desde la vista de Leads"/>
+        :leadActs.map(act=><div key={act.id} style={{background:'#1A1F2E',border:'1px solid #1E2535',borderRadius:8,padding:'10px 12px',display:'flex',gap:10}}>
+          <span style={{fontSize:16}}>{ACTIVITY_ICONS[act.tipo]||'📌'}</span>
+          <div>
+            <div style={{fontSize:12,fontWeight:600,color:'#F1F5F9'}}>{act.tipo} · {act.fecha}</div>
+            {act.descripcion&&<div style={{fontSize:12,color:'#94A3B8',marginTop:2}}>{act.descripcion}</div>}
+            {act.proximo_paso&&<div style={{fontSize:11,color:'#5CBB00',marginTop:4}}>→ {act.proximo_paso}</div>}
+          </div>
+          {act.realizada&&<span style={{marginLeft:'auto',fontSize:12}}>✅</span>}
+        </div>)
+      }
+    </div>}
+  </Modal>
+}
+
 // ── BPM MODAL ─────────────────────────────────────────────
 function BPMModal({entity,onClose,onSave}){
   const[form,setForm]=useState({...entity,bpm_tasks:entity?.bpm_tasks||Object.fromEntries(BPM_TASKS.map(t=>[t,false])),servicio:entity?.servicio||{}})
@@ -297,7 +394,7 @@ function BPMModal({entity,onClose,onSave}){
   </Modal>
 }
 
-// ── LEAD MODAL ────────────────────────────────────────────
+// ── LEAD MODAL (full) ─────────────────────────────────────
 function LeadModal({lead,onClose,onSave,defaultCountry}){
   const[form,setForm]=useState(lead||{country:defaultCountry||'',empresa:'',contacto:'',puesto:'',email:'',phone:'',status:'Primer Contacto',tier:'Tier 3',volumen:'',revenue:'',margen:'',tarifa:'',expected_close:'',progress_to_won:10,last_interaction:'',next_step:'',comments:'',loss_reason:''})
   const[errors,setErrors]=useState({})
@@ -346,7 +443,6 @@ function LeadModal({lead,onClose,onSave,defaultCountry}){
   </Modal>
 }
 
-// ── LOSS MODAL ────────────────────────────────────────────
 function LossModal({lead,onClose,onConfirm}){
   const[reason,setReason]=useState('')
   return <Modal title={`Marcar como Perdido — ${lead?.empresa}`} onClose={onClose}>
@@ -359,7 +455,6 @@ function LossModal({lead,onClose,onConfirm}){
   </Modal>
 }
 
-// ── ACTIVITY MODAL ────────────────────────────────────────
 function ActivityModal({lead,activity,onClose,onSave}){
   const[form,setForm]=useState(activity||{lead_id:lead?.id||'',tipo:'Llamada',fecha:new Date().toISOString().split('T')[0],fecha_vencimiento:'',descripcion:'',ejecutivo:'',proximo_paso:'',realizada:false})
   const[saving,setSaving]=useState(false)
@@ -377,7 +472,7 @@ function ActivityModal({lead,activity,onClose,onSave}){
       </div>
       <div style={{gridColumn:'1/-1',display:'flex',flexDirection:'column',gap:4}}>
         <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase'}}>Próximo paso</label>
-        <input value={form.proximo_paso||''} onChange={e=>f('proximo_paso',e.target.value)} placeholder="¿Qué sigue después de esta actividad?" style={{background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,outline:'none',boxSizing:'border-box',width:'100%'}}/>
+        <input value={form.proximo_paso||''} onChange={e=>f('proximo_paso',e.target.value)} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,outline:'none',boxSizing:'border-box',width:'100%'}}/>
       </div>
       {isEdit&&<label style={{gridColumn:'1/-1',display:'flex',alignItems:'center',gap:10,cursor:'pointer',padding:'10px',background:'#1E2535',borderRadius:8,border:'1px solid #2D3748'}}>
         <input type="checkbox" checked={form.realizada||false} onChange={e=>f('realizada',e.target.checked)} style={{width:18,height:18,cursor:'pointer'}}/>
@@ -391,15 +486,159 @@ function ActivityModal({lead,activity,onClose,onSave}){
   </Modal>
 }
 
+// ── ACCOUNT FICHA MODAL ───────────────────────────────────
+function AccountFichaModal({account,onClose,profile}){
+  const[tab,setTab]=useState('notas')
+  const[notas,setNotas]=useState([])
+  const[archivos,setArchivos]=useState([])
+  const[nuevaNota,setNuevaNota]=useState('')
+  const[loadingNotas,setLoadingNotas]=useState(true)
+  const[loadingArchivos,setLoadingArchivos]=useState(true)
+  const[saving,setSaving]=useState(false)
+  const[uploading,setUploading]=useState(false)
+  const fileRef=useRef()
+
+  useEffect(()=>{
+    fetchNotas()
+    fetchArchivos()
+  },[account.id])
+
+  async function fetchNotas(){
+    setLoadingNotas(true)
+    const{data}=await sb.from('account_notes').select('*').eq('account_id',account.id).order('created_at',{ascending:false})
+    setNotas(data||[])
+    setLoadingNotas(false)
+  }
+
+  async function fetchArchivos(){
+    setLoadingArchivos(true)
+    const{data}=await sb.from('account_files').select('*').eq('account_id',account.id).order('created_at',{ascending:false})
+    setArchivos(data||[])
+    setLoadingArchivos(false)
+  }
+
+  async function guardarNota(){
+    if(!nuevaNota.trim())return
+    setSaving(true)
+    const{data,error}=await sb.from('account_notes').insert([{
+      account_id:account.id,
+      content:nuevaNota.trim(),
+      created_by:profile?.email||'',
+      created_at:new Date().toISOString()
+    }]).select().single()
+    if(!error){setNotas(p=>[data,...p]);setNuevaNota('')}
+    setSaving(false)
+  }
+
+  async function eliminarNota(id){
+    await sb.from('account_notes').delete().eq('id',id)
+    setNotas(p=>p.filter(n=>n.id!==id))
+  }
+
+  async function subirArchivo(file){
+    if(!file)return
+    setUploading(true)
+    const ext=file.name.split('.').pop()
+    const path=`accounts/${account.id}/${Date.now()}.${ext}`
+    const{error:upErr}=await sb.storage.from('account-files').upload(path,file)
+    if(!upErr){
+      const{data:{publicUrl}}=sb.storage.from('account-files').getPublicUrl(path)
+      const{data,error}=await sb.from('account_files').insert([{
+        account_id:account.id,
+        name:file.name,
+        url:publicUrl,
+        size:file.size,
+        type:file.type,
+        created_by:profile?.email||'',
+        created_at:new Date().toISOString()
+      }]).select().single()
+      if(!error)setArchivos(p=>[data,...p])
+    }
+    setUploading(false)
+  }
+
+  async function eliminarArchivo(arch){
+    const path=arch.url.split('/account-files/')[1]
+    await sb.storage.from('account-files').remove([path])
+    await sb.from('account_files').delete().eq('id',arch.id)
+    setArchivos(p=>p.filter(a=>a.id!==arch.id))
+  }
+
+  const fmtSize=b=>b>1048576?`${(b/1048576).toFixed(1)} MB`:b>1024?`${(b/1024).toFixed(0)} KB`:`${b} B`
+  const fileIcon=t=>t?.includes('pdf')?'📄':t?.includes('image')?'🖼️':t?.includes('sheet')||t?.includes('excel')||t?.includes('csv')?'📊':t?.includes('word')||t?.includes('document')?'📝':'📎'
+
+  return <Modal title={`Ficha — ${account.empresa}`} onClose={onClose} wide subtitle={`${account.country} · ${account.status}`}>
+    <div style={{display:'flex',gap:8,marginBottom:18}}>
+      {[['notas','📝 Notas internas'],['archivos','📁 Archivos'],['bpm','⚙️ BPM']].map(([id,label])=>(
+        <button key={id} onClick={()=>setTab(id)} style={{padding:'6px 14px',borderRadius:20,border:`1px solid ${tab===id?'#5CBB00':'#2D3748'}`,background:tab===id?'#5CBB0022':'transparent',color:tab===id?'#5CBB00':'#64748B',fontSize:12,cursor:'pointer',fontWeight:tab===id?600:400}}>{label}</button>
+      ))}
+    </div>
+
+    {tab==='notas'&&<div>
+      <div style={{display:'flex',gap:10,marginBottom:16}}>
+        <textarea value={nuevaNota} onChange={e=>setNuevaNota(e.target.value)} placeholder="Escribí una nota sobre esta cuenta..." rows={2} style={{flex:1,background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'none',outline:'none',boxSizing:'border-box'}}/>
+        <GreenBtn onClick={guardarNota} disabled={saving||!nuevaNota.trim()} style={{alignSelf:'flex-end'}}>{saving?'...':'Agregar'}</GreenBtn>
+      </div>
+      {loadingNotas?<Loader text="Cargando notas..."/>:!notas.length?<EmptyState icon="📝" title="Sin notas" sub="Agregá la primera nota sobre esta cuenta"/>
+        :<div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {notas.map(n=><div key={n.id} style={{background:'#1A1F2E',border:'1px solid #1E2535',borderRadius:8,padding:'12px 14px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+              <div style={{fontSize:11,color:'#64748B'}}>
+                {n.created_by&&<span style={{color:'#94A3B8',fontWeight:600}}>{n.created_by} · </span>}
+                {new Date(n.created_at).toLocaleDateString('es-AR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}
+              </div>
+              <button onClick={()=>eliminarNota(n.id)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:14,padding:'0 4px'}}>×</button>
+            </div>
+            <div style={{fontSize:13,color:'#E2E8F0',lineHeight:1.6,whiteSpace:'pre-wrap'}}>{n.content}</div>
+          </div>)}
+        </div>
+      }
+    </div>}
+
+    {tab==='archivos'&&<div>
+      <div style={{border:'2px dashed #2D3748',borderRadius:12,padding:'24px',textAlign:'center',marginBottom:16,cursor:'pointer'}} onClick={()=>fileRef.current?.click()}>
+        <input ref={fileRef} type="file" style={{display:'none'}} onChange={e=>subirArchivo(e.target.files[0])} accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg"/>
+        {uploading?<div><div style={{width:24,height:24,border:'3px solid #1E2535',borderTop:'3px solid #5CBB00',borderRadius:'50%',animation:'spin 0.8s linear infinite',margin:'0 auto 8px'}}/>
+          <div style={{fontSize:12,color:'#64748B'}}>Subiendo...</div>
+        </div>:<div>
+          <div style={{fontSize:28,marginBottom:8}}>📂</div>
+          <div style={{fontSize:13,color:'#94A3B8',fontWeight:500}}>Click para subir archivo</div>
+          <div style={{fontSize:11,color:'#64748B',marginTop:4}}>PDF, Word, Excel, imágenes</div>
+        </div>}
+      </div>
+      {loadingArchivos?<Loader text="Cargando archivos..."/>:!archivos.length?<EmptyState icon="📁" title="Sin archivos" sub="Subí contratos, tarifas o documentos importantes"/>
+        :<div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {archivos.map(a=><div key={a.id} style={{background:'#1A1F2E',border:'1px solid #1E2535',borderRadius:8,padding:'10px 14px',display:'flex',alignItems:'center',gap:12}}>
+            <span style={{fontSize:22,flexShrink:0}}>{fileIcon(a.type)}</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:13,fontWeight:500,color:'#F1F5F9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.name}</div>
+              <div style={{fontSize:11,color:'#64748B'}}>{fmtSize(a.size)} · {new Date(a.created_at).toLocaleDateString('es-AR')} · {a.created_by}</div>
+            </div>
+            <a href={a.url} target="_blank" rel="noreferrer" style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:6,padding:'5px 10px',fontSize:11,cursor:'pointer',textDecoration:'none',whiteSpace:'nowrap'}}>↓ Ver</a>
+            <button onClick={()=>eliminarArchivo(a)} style={{background:'none',border:'none',color:'#475569',cursor:'pointer',fontSize:16,padding:'0 4px'}}>×</button>
+          </div>)}
+        </div>
+      }
+    </div>}
+
+    {tab==='bpm'&&<div>
+      <div style={{marginBottom:14}}>
+        {BPM_TASKS.map(t=><div key={t} style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',background:account.bpm_tasks?.[t]?'#5CBB0015':'#141820',border:`1px solid ${account.bpm_tasks?.[t]?'#5CBB00':'#1E2535'}`,borderRadius:8,marginBottom:5}}>
+          <div style={{width:18,height:18,borderRadius:4,border:`2px solid ${account.bpm_tasks?.[t]?'#5CBB00':'#475569'}`,background:account.bpm_tasks?.[t]?'#5CBB00':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,color:'white',flexShrink:0}}>{account.bpm_tasks?.[t]?'✓':''}</div>
+          <span style={{fontSize:13,color:account.bpm_tasks?.[t]?'#5CBB00':'#94A3B8',fontWeight:account.bpm_tasks?.[t]?600:400}}>{t}</span>
+        </div>)}
+      </div>
+    </div>}
+  </Modal>
+}
+
 // ── IMPORT MODAL ──────────────────────────────────────────
 function ImportModal({onClose,onImport,defaultCountry}){
   const[step,setStep]=useState('upload')
   const[rows,setRows]=useState([])
   const[errors,setErrors]=useState([])
   const[progress,setProgress]=useState(0)
-
   const HEADER_MAP={'country':'country','país':'country','pais':'country','empresa':'empresa','nombre del contacto':'contacto','contacto':'contacto','puesto del contacto':'puesto','puesto':'puesto','mail del contacto':'email','email':'email','mail':'email','status':'status','estado':'status','tier':'tier','volumen estimado (mensual)':'volumen','volumen estimado':'volumen','volumen':'volumen','tarifa promedio':'tarifa','tarifa':'tarifa','revenue estimado':'revenue','revenue':'revenue','margen estimado':'margen','margen':'margen','expected\nclose date':'expected_close','expected close date':'expected_close','progress to won':'progress_to_won','ultima interacción':'last_interaction','última interacción':'last_interaction','ultima interaccion':'last_interaction','next step':'next_step','proximo paso':'next_step','comments':'comments','comentarios':'comments'}
-
   function parseCSV(text){
     const lines=text.split('\n').filter(l=>l.trim())
     if(lines.length<2)return
@@ -424,11 +663,9 @@ function ImportModal({onClose,onImport,defaultCountry}){
     }
     setRows(parsed);setErrors(errs);setStep('preview')
   }
-
   async function handleImport(){
     setStep('importing')
-    const batchSize=20
-    let done=0
+    const batchSize=20;let done=0
     for(let i=0;i<rows.length;i+=batchSize){
       await onImport(rows.slice(i,i+batchSize))
       done+=Math.min(batchSize,rows.length-i)
@@ -436,19 +673,14 @@ function ImportModal({onClose,onImport,defaultCountry}){
     }
     setStep('done')
   }
-
-  const SC={'Primer Contacto':'#3B82F6','Reunión':'#8B5CF6','Propuesta Enviada':'#F59E0B','Ganado':'#5CBB00','Perdido':'#EF4444'}
+  const SC={'Primer Contacto':'#3B82F6','Reunión':'#8B5CF6','Propuesta Enviada':'#F59E0B','Propuesta Ganada':'#89D44A','Ganado':'#5CBB00','Perdido':'#EF4444'}
   const statusCounts=rows.reduce((acc,r)=>{acc[r.status]=(acc[r.status]||0)+1;return acc},{})
-
   return <Modal title="Importar Leads desde CSV" onClose={onClose} wide subtitle="Compatible con el formato del Excel de WYN">
     {step==='upload'&&<div>
       <div style={{border:'2px dashed #2D3748',borderRadius:12,padding:'48px 24px',textAlign:'center'}}>
         <div style={{fontSize:36,marginBottom:14}}>📂</div>
         <div style={{fontSize:15,fontWeight:600,color:'#F1F5F9',marginBottom:8}}>Seleccioná tu archivo CSV</div>
         <input type="file" accept=".csv" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>parseCSV(ev.target.result);r.readAsText(f,'UTF-8')}}} style={{marginTop:12}}/>
-      </div>
-      <div style={{marginTop:16,background:'#1A2235',borderRadius:10,padding:14,fontSize:12,color:'#64748B'}}>
-        <strong style={{color:'#94A3B8'}}>Cómo exportar desde Excel:</strong> Archivo → Guardar como → CSV UTF-8
       </div>
     </div>}
     {step==='preview'&&<div>
@@ -493,28 +725,56 @@ function DashboardView({leads,accounts,prospects,activities}){
     const cutoff=new Date();if(dateFilter==='month')cutoff.setDate(1);if(dateFilter==='quarter')cutoff.setMonth(cutoff.getMonth()-3);
     return new Date(l.created_at||l.last_interaction)>=cutoff
   })
-  const ganados=fl.filter(l=>l.status==='Ganado').length
-  const perdidos=fl.filter(l=>l.status==='Perdido').length
-  const conv=fl.length>0?Math.round((ganados/fl.length)*100):0
+
+  const activeLeads=fl.filter(l=>l.status!=='Ganado'&&l.status!=='Perdido')
+  const propuestasEnviadas=fl.filter(l=>l.status==='Propuesta Enviada')
+  const propuestasGanadas=fl.filter(l=>l.status==='Propuesta Ganada')
+  const ganados=fl.filter(l=>l.status==='Ganado')
+  const perdidos=fl.filter(l=>l.status==='Perdido')
+  const conv=fl.length>0?Math.round((ganados.length/fl.length)*100):0
   const totalRevenue=fl.reduce((s,l)=>s+(l.revenue||0),0)
-  const totalVolumen=fl.reduce((s,l)=>s+(l.volumen||0),0)
+  const totalVolumen=fl.filter(l=>l.status!=='Perdido').reduce((s,l)=>s+(l.volumen||0),0)
   const staleCount=leads.filter(l=>isStale(l,activities)).length
+
   const byStage=PIPELINE_STAGES.map(s=>({stage:s,count:fl.filter(l=>l.status===s).length}))
-  const byCountry=COUNTRIES.map(c=>({country:c,leads:fl.filter(l=>l.country===c).length,ganados:fl.filter(l=>l.country===c&&l.status==='Ganado').length,revenue:fl.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0)})).filter(c=>c.leads>0)
+
+  const LATAM_TOTAL={
+    country:'🌎 LATAM',
+    leads:fl.length,
+    ganados:ganados.length,
+    revenue:fl.reduce((a,l)=>a+(l.revenue||0),0)
+  }
+  const byCountry=COUNTRIES.filter(c=>c!=='Regional').map(c=>({
+    country:c,
+    leads:fl.filter(l=>l.country===c).length,
+    ganados:fl.filter(l=>l.country===c&&l.status==='Ganado').length,
+    revenue:fl.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0)
+  })).filter(c=>c.leads>0)
+
   const lossReasons=fl.filter(l=>l.status==='Perdido'&&l.loss_reason).reduce((acc,l)=>{acc[l.loss_reason]=(acc[l.loss_reason]||0)+1;return acc},{})
+
   return <div style={{display:'flex',flexDirection:'column',gap:18}}>
-    <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+    <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
       {[['all','Todo el tiempo'],['month','Este mes'],['quarter','Último trimestre']].map(([v,label])=><button key={v} onClick={()=>setDateFilter(v)} style={{padding:'6px 14px',borderRadius:20,border:`1px solid ${dateFilter===v?'#5CBB00':'#2D3748'}`,background:dateFilter===v?'#5CBB0022':'transparent',color:dateFilter===v?'#5CBB00':'#64748B',fontSize:12,cursor:'pointer',fontWeight:dateFilter===v?600:400}}>{label}</button>)}
       {staleCount>0&&<div style={{marginLeft:'auto',background:'#EF444415',border:'1px solid #EF444433',borderRadius:20,padding:'6px 14px',fontSize:12,color:'#EF4444',fontWeight:600}}>🔴 {staleCount} leads sin actividad +7d</div>}
     </div>
-    <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-      <StatCard label="Total Leads" value={fl.length} icon="🎯" color="#3B82F6" sub={`${prospects.length} prospectos`}/>
-      <StatCard label="Ganados" value={ganados} icon="🏆" color="#5CBB00" sub={`${perdidos} perdidos`}/>
+
+    {/* Fila 1: Pipeline */}
+    <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+      <StatCard label="Leads Activos" value={activeLeads.length} icon="🎯" color="#3B82F6" sub={`${prospects.length} prospectos`}/>
+      <StatCard label="Propuestas Enviadas" value={propuestasEnviadas.length} icon="📤" color="#F59E0B" sub={`${fmtCur(propuestasEnviadas.reduce((s,l)=>s+(l.revenue||0),0))} revenue`}/>
+      <StatCard label="Propuestas Aceptadas" value={propuestasGanadas.length} icon="🤝" color="#89D44A" sub={`${fmtCur(propuestasGanadas.reduce((s,l)=>s+(l.revenue||0),0))} revenue`}/>
+      <StatCard label="Ganados" value={ganados.length} icon="🏆" color="#5CBB00" sub={`${perdidos.length} perdidos`}/>
+    </div>
+
+    {/* Fila 2: Métricas globales */}
+    <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
       <StatCard label="Conversión" value={`${conv}%`} icon="📈" color="#F59E0B"/>
       <StatCard label="Revenue Pipeline" value={fmtCur(totalRevenue)} icon="💰" color="#64748B"/>
-      <StatCard label="Volumen Total" value={fmtNum(totalVolumen)} icon="📦" color="#007B84" sub="envíos/mes"/>
+      <StatCard label="Volumen Total" value={fmtNum(totalVolumen)} icon="📦" color="#007B84" sub="envíos/mes (sin perdidos)"/>
       <StatCard label="Cuentas Activas" value={accounts.filter(a=>a.status==='Activo').length} icon="🏢" color="#5CBB00"/>
     </div>
+
     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}}>
       <Card>
         <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Pipeline por Etapa</div>
@@ -524,19 +784,28 @@ function DashboardView({leads,accounts,prospects,activities}){
           <div style={{width:22,fontSize:12,fontWeight:700,color:'#E2E8F0',textAlign:'right'}}>{s.count}</div>
         </div>)}
       </Card>
+
       <Card>
         <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Performance por País</div>
         <div style={{fontSize:10,display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',color:'#475569',textTransform:'uppercase',paddingBottom:6,borderBottom:'1px solid #1E2535',marginBottom:4}}>
           <div>País</div><div>Leads</div><div>Ganados</div><div>Revenue</div>
         </div>
-        {byCountry.map(c=><div key={c.country} style={{display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',fontSize:12,padding:'5px 0',borderBottom:'1px solid #1E253540'}}>
-          <div style={{color:'#E2E8F0'}}>{c.country}</div>
+        {/* LATAM acumulado */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',fontSize:12,padding:'6px 0',borderBottom:'2px solid #2D3748',marginBottom:4,background:'#1A1F2E',borderRadius:6,paddingLeft:6}}>
+          <div style={{color:'#F1F5F9',fontWeight:700}}>{LATAM_TOTAL.country}</div>
+          <div style={{color:'#3B82F6',fontWeight:700}}>{LATAM_TOTAL.leads}</div>
+          <div style={{color:'#5CBB00',fontWeight:700}}>{LATAM_TOTAL.ganados}</div>
+          <div style={{color:'#8B5CF6',fontWeight:700,fontSize:10}}>{fmtCur(LATAM_TOTAL.revenue)}</div>
+        </div>
+        {byCountry.map(c=><div key={c.country} style={{display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',fontSize:12,padding:'5px 0 5px 6px',borderBottom:'1px solid #1E253540'}}>
+          <div style={{color:'#94A3B8'}}>{c.country}</div>
           <div style={{color:'#3B82F6',fontWeight:600}}>{c.leads}</div>
           <div style={{color:'#5CBB00',fontWeight:600}}>{c.ganados}</div>
           <div style={{color:'#8B5CF6',fontWeight:600,fontSize:10}}>{fmtCur(c.revenue)}</div>
         </div>)}
       </Card>
     </div>
+
     {Object.keys(lossReasons).length>0&&<Card>
       <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Motivos de Pérdida</div>
       <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
@@ -585,21 +854,35 @@ function PipelineView({leads,activities,onMoveStage,onSelect,onConfirmLoss}){
 }
 
 // ── LEADS VIEW ────────────────────────────────────────────
-function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,onConfirmLoss,onDelete}){
+function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,onConfirmLoss,onDelete,onViewDetail}){
   const[filter,setFilter]=useState('')
   const[stageFilter,setStageFilter]=useState('Todos')
   const[staleOnly,setStaleOnly]=useState(false)
   const[confirmDelete,setConfirmDelete]=useState(null)
+  const[sortCol,setSortCol]=useState('created_at')
+  const[sortDir,setSortDir]=useState('desc')
+
+  function toggleSort(col){
+    if(sortCol===col)setSortDir(d=>d==='asc'?'desc':'asc')
+    else{setSortCol(col);setSortDir('desc')}
+  }
+
   const filtered=leads.filter(l=>{
     if(staleOnly&&!isStale(l,activities))return false
     if(stageFilter!=='Todos'&&l.status!==stageFilter)return false
     if(filter&&!l.empresa.toLowerCase().includes(filter.toLowerCase())&&!(l.contacto||'').toLowerCase().includes(filter.toLowerCase()))return false
     return true
+  }).sort((a,b)=>{
+    const av=a[sortCol]||'';const bv=b[sortCol]||''
+    return sortDir==='asc'?(av>bv?1:-1):(av<bv?1:-1)
   })
+
   const staleCount=leads.filter(l=>isStale(l,activities)).length
+  const SortIcon=({col})=><span style={{fontSize:9,marginLeft:2,color:sortCol===col?'#5CBB00':'#475569'}}>{sortCol===col?(sortDir==='asc'?'▲':'▼'):'⇅'}</span>
+
   return <div style={{display:'flex',flexDirection:'column',gap:12}}>
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-      <input placeholder="🔍 Buscar..." value={filter} onChange={e=>setFilter(e.target.value)} style={{flex:1,minWidth:200,background:'#141820',border:'1px solid #1E2535',color:'#E2E8F0',borderRadius:8,padding:'8px 12px',fontSize:13,outline:'none'}}/>
+      <input placeholder="🔍 Buscar empresa o contacto..." value={filter} onChange={e=>setFilter(e.target.value)} style={{flex:1,minWidth:200,background:'#141820',border:'1px solid #1E2535',color:'#E2E8F0',borderRadius:8,padding:'8px 12px',fontSize:13,outline:'none'}}/>
       <select value={stageFilter} onChange={e=>setStageFilter(e.target.value)} style={{background:'#141820',border:'1px solid #1E2535',color:'#E2E8F0',borderRadius:8,padding:'8px 12px',fontSize:13,cursor:'pointer',outline:'none'}}>
         <option value="Todos">Todas las etapas</option>
         {PIPELINE_STAGES.map(s=><option key={s} value={s}>{s}</option>)}
@@ -612,7 +895,12 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
         <table style={{width:'100%',borderCollapse:'collapse'}}>
           <thead>
             <tr style={{borderBottom:'1px solid #1E2535'}}>
-              {['País','Empresa','Contacto','Status','Tier','Vol/mes','Revenue','Progress','Última Int.','Acciones'].map(h=><th key={h} style={{padding:'11px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:1,textAlign:'left',whiteSpace:'nowrap',background:'#0F1117'}}>{h}</th>)}
+              {[['country','País'],['empresa','Empresa'],['contacto','Contacto'],['status','Status'],['tier','Tier'],['volumen','Vol/mes'],['revenue','Revenue'],['progress_to_won','Progress'],['last_interaction','Última Int.']].map(([col,label])=>(
+                <th key={col} onClick={()=>toggleSort(col)} style={{padding:'11px 12px',fontSize:10,color:sortCol===col?'#5CBB00':'#64748B',textTransform:'uppercase',letterSpacing:1,textAlign:'left',whiteSpace:'nowrap',background:'#0F1117',cursor:'pointer'}}>
+                  {label}<SortIcon col={col}/>
+                </th>
+              ))}
+              <th style={{padding:'11px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',background:'#0F1117'}}>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -624,7 +912,7 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
                 const hasAccount=accounts.find(a=>a.lead_id===lead.id)
                 return <tr key={lead.id} style={{borderBottom:'1px solid #1E253550'}}>
                   <td style={{padding:'10px 12px',fontSize:11,color:'#94A3B8'}}>{lead.country}</td>
-                  <td style={{padding:'10px 12px',fontSize:13,fontWeight:600,color:'#F1F5F9',whiteSpace:'nowrap'}}>{lead.empresa}{stale&&<StaleWarning/>}</td>
+                  <td style={{padding:'10px 12px',fontSize:13,fontWeight:600,color:'#F1F5F9',whiteSpace:'nowrap',cursor:'pointer'}} onClick={()=>onViewDetail(lead)}>{lead.empresa}{stale&&<StaleWarning/>}</td>
                   <td style={{padding:'10px 12px',fontSize:12,color:'#CBD5E1'}}>{lead.contacto||'—'}</td>
                   <td style={{padding:'10px 12px'}}><Badge text={lead.status} color={stageColor(lead.status)}/></td>
                   <td style={{padding:'10px 12px'}}><Badge text={lead.tier||'—'} color="#64748B"/></td>
@@ -644,7 +932,7 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
                       {lead.status==='Ganado'&&<MiniBtn onClick={()=>onBPM(lead)} color="#5CBB00">BPM</MiniBtn>}
                       {lead.status==='Ganado'&&!hasAccount&&<MiniBtn onClick={()=>onConvert(lead)} color="#5CBB00">→Cta</MiniBtn>}
                       {lead.status!=='Perdido'&&lead.status!=='Ganado'&&<MiniBtn onClick={()=>onConfirmLoss(lead)} color="#EF4444">Perdido</MiniBtn>}
-                      <MiniBtn onClick={()=>setConfirmDelete(lead)} color="#64748B">Eliminar</MiniBtn>
+                      <MiniBtn onClick={()=>setConfirmDelete(lead)} color="#64748B">🗑</MiniBtn>
                     </div>
                   </td>
                 </tr>
@@ -706,7 +994,7 @@ function ProspectsView({prospects,onEdit,onConvert}){
 }
 
 // ── ACCOUNTS VIEW ─────────────────────────────────────────
-function AccountsView({accounts,onBPM}){
+function AccountsView({accounts,onBPM,onFicha}){
   if(!accounts.length)return <EmptyState icon="🏢" title="No hay cuentas activas" sub="Se crean al ganar un Lead"/>
   return <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))',gap:16}}>
     {accounts.map(acc=>{
@@ -731,7 +1019,10 @@ function AccountsView({accounts,onBPM}){
         <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:12}}>
           {BPM_TASKS.map(t=><span key={t} style={{fontSize:10,padding:'2px 6px',borderRadius:6,background:tasks[t]?'#5CBB0022':'#1E2535',color:tasks[t]?'#5CBB00':'#475569',border:`1px solid ${tasks[t]?'#5CBB0044':'#2D3748'}`}}>{t}</span>)}
         </div>
-        <GreenBtn small onClick={()=>onBPM(acc)}>⚙️ Gestionar BPM</GreenBtn>
+        <div style={{display:'flex',gap:6}}>
+          <GreenBtn small onClick={()=>onBPM(acc)}>⚙️ BPM</GreenBtn>
+          <button onClick={()=>onFicha(acc)} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:6,padding:'6px 12px',fontSize:11,cursor:'pointer',fontWeight:500}}>📁 Ficha</button>
+        </div>
       </Card>
     })}
   </div>
@@ -760,7 +1051,7 @@ function ActivitiesView({activities,leads,onEdit,onToggleDone}){
       const isDueToday=act.fecha_vencimiento===today&&!act.realizada
       return <Card key={act.id} style={{padding:'12px 16px',opacity:act.realizada?0.6:1,borderColor:isOverdue?'#EF444444':isDueToday?'#F59E0B44':'#1E2535'}}>
         <div style={{display:'flex',alignItems:'flex-start',gap:12}}>
-          <div onClick={()=>onToggleDone(act)} style={{width:34,height:34,borderRadius:8,background:act.realizada?'#5CBB0022':(ACTIVITY_COLORS[act.tipo]||'#64748B')+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,cursor:'pointer',border:`2px solid ${act.realizada?'#5CBB00':'transparent'}`}} title={act.realizada?'Marcar como pendiente':'Marcar como realizada'}>
+          <div onClick={()=>onToggleDone(act)} style={{width:34,height:34,borderRadius:8,background:act.realizada?'#5CBB0022':(ACTIVITY_COLORS[act.tipo]||'#64748B')+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,cursor:'pointer',border:`2px solid ${act.realizada?'#5CBB00':'transparent'}`}}>
             {act.realizada?'✅':ACTIVITY_ICONS[act.tipo]||'📌'}
           </div>
           <div style={{flex:1}}>
@@ -770,7 +1061,6 @@ function ActivitiesView({activities,leads,onEdit,onToggleDone}){
               <span style={{fontSize:11,color:'#64748B'}}>· {act.fecha}{act.ejecutivo?` · ${act.ejecutivo}`:''}</span>
               {isOverdue&&<span style={{fontSize:11,color:'#EF4444',fontWeight:600}}>⚠ Vencida {act.fecha_vencimiento}</span>}
               {isDueToday&&<span style={{fontSize:11,color:'#F59E0B',fontWeight:600}}>🔔 Vence hoy</span>}
-              {act.fecha_vencimiento&&!isOverdue&&!isDueToday&&!act.realizada&&<span style={{fontSize:11,color:'#64748B'}}>· vence {act.fecha_vencimiento}</span>}
             </div>
             {act.descripcion&&<p style={{margin:'0 0 6px',fontSize:12,color:'#94A3B8',lineHeight:1.5}}>{act.descripcion}</p>}
             {act.proximo_paso&&<div style={{background:'#1E2535',borderRadius:6,padding:'6px 10px',fontSize:11,color:'#5CBB00'}}><span style={{color:'#64748B'}}>Próx. paso: </span>{act.proximo_paso}</div>}
@@ -782,7 +1072,7 @@ function ActivitiesView({activities,leads,onEdit,onToggleDone}){
   </div>
 }
 
-// ── PRODUCT MODAL ─────────────────────────────────────────
+// ── PRODUCTS VIEW ─────────────────────────────────────────
 function ProductModal({product,onClose,onSave}){
   const[form,setForm]=useState(product||{country:'',servicio:'',modalidad:'B2C',tipo_entrega:'Domicilio',tarifa:'',moneda:'USD',sla:'',condiciones:''})
   const[saving,setSaving]=useState(false)
@@ -807,7 +1097,6 @@ function ProductModal({product,onClose,onSave}){
   </Modal>
 }
 
-// ── PRODUCTS VIEW ─────────────────────────────────────────
 function ProductsView({products,isRegional,canEdit,userCountry,onSave,onDelete}){
   const[showModal,setShowModal]=useState(false)
   const[editProduct,setEditProduct]=useState(null)
@@ -841,7 +1130,7 @@ function ProductsView({products,isRegional,canEdit,userCountry,onSave,onDelete})
         </Card>
       })}
     </div>
-    {showModal&&<ProductModal product={editProduct} onClose={()=>{setShowModal(false);setEditProduct(null)}} onSave={onSave} defaultCountry={!isRegional?userCountry:undefined}/>}
+    {showModal&&<ProductModal product={editProduct} onClose={()=>{setShowModal(false);setEditProduct(null)}} onSave={onSave}/>}
     {confirmDelete&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2000}}>
       <div style={{background:'#141820',border:'1px solid #EF444444',borderRadius:16,padding:28,width:380,textAlign:'center'}}>
         <div style={{fontSize:32,marginBottom:12}}>🗑️</div>
@@ -862,7 +1151,7 @@ function ReportsView({leads,accounts}){
   const perdidos=leads.filter(l=>l.status==='Perdido').length
   const conv=leads.length>0?((ganados/leads.length)*100).toFixed(1):0
   const totalRev=leads.reduce((s,l)=>s+(l.revenue||0),0)
-  const byCountry=COUNTRIES.map(c=>({country:c,leads:leads.filter(l=>l.country===c).length,ganados:leads.filter(l=>l.country===c&&l.status==='Ganado').length,perdidos:leads.filter(l=>l.country===c&&l.status==='Perdido').length,revenue:leads.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0),volumen:leads.filter(l=>l.country===c).reduce((a,l)=>a+(l.volumen||0),0)})).filter(c=>c.leads>0)
+  const byCountry=COUNTRIES.map(c=>({country:c,leads:leads.filter(l=>l.country===c).length,ganados:leads.filter(l=>l.country===c&&l.status==='Ganado').length,perdidos:leads.filter(l=>l.country===c&&l.status==='Perdido').length,revenue:leads.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0),volumen:leads.filter(l=>l.country===c&&l.status!=='Perdido').reduce((a,l)=>a+(l.volumen||0),0)})).filter(c=>c.leads>0)
   return <div style={{display:'flex',flexDirection:'column',gap:16}}>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
       <StatCard label="Total Leads" value={leads.length} icon="🎯" color="#3B82F6"/>
@@ -878,7 +1167,7 @@ function ReportsView({leads,accounts}){
       <div style={{fontSize:13,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Consolidado por País</div>
       <table style={{width:'100%',borderCollapse:'collapse'}}>
         <thead><tr style={{borderBottom:'1px solid #1E2535'}}>
-          {['País','Leads','Ganados','Perdidos','% Conv.','Revenue','Volumen'].map(h=><th key={h} style={{padding:'10px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',textAlign:'left'}}>{h}</th>)}
+          {['País','Leads','Ganados','Perdidos','% Conv.','Revenue','Volumen Activo'].map(h=><th key={h} style={{padding:'10px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',textAlign:'left'}}>{h}</th>)}
         </tr></thead>
         <tbody>
           {byCountry.map((c,i)=>{
@@ -931,36 +1220,26 @@ function ProspectModal({prospect,onClose,onSave,defaultCountry}){
 function ImportProspectsModal({onClose,onImport,defaultCountry}){
   const[step,setStep]=useState('upload')
   const[rows,setRows]=useState([])
-  const[errors,setErrors]=useState([])
   const[progress,setProgress]=useState(0)
-
-  const HEADER_MAP={'country':'country','país':'country','pais':'country','empresa':'empresa','contacto':'contacto','nombre del contacto':'contacto','puesto':'puesto','puesto del contacto':'puesto','email':'email','mail del contacto':'email','mail':'email','phone':'phone','teléfono':'phone','volumen estimado':'volumen_estimado','volumen_estimado':'volumen_estimado','volumen':'volumen_estimado','estado':'status','status':'status','notas':'notas','comentarios':'notas','comments':'notas'}
-
+  const HEADER_MAP={'country':'country','país':'country','pais':'country','empresa':'empresa','contacto':'contacto','email':'email','mail':'email','volumen estimado':'volumen_estimado','volumen_estimado':'volumen_estimado','volumen':'volumen_estimado','estado':'status','status':'status'}
   function parseCSV(text){
     const lines=text.split('\n').filter(l=>l.trim())
     if(lines.length<2)return
     const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,''))
     const fieldMap=headers.map(h=>HEADER_MAP[h.toLowerCase()]||null)
-    const parsed=[];const errs=[]
+    const parsed=[]
     for(let i=1;i<lines.length;i++){
       const cols=lines[i].split(',').map(c=>c.trim().replace(/"/g,''))
       if(cols.every(c=>!c))continue
       const row={country:defaultCountry||'',status:'Sin Contacto',volumen_estimado:0}
-      fieldMap.forEach((field,idx)=>{
-        if(!field)return
-        const val=cols[idx]?.trim()||''
-        if(field==='volumen_estimado')row[field]=parseFloat(val)||0
-        else row[field]=val
-      })
-      if(!row.empresa){errs.push(`Fila ${i+1}: Empresa requerida`);continue}
+      fieldMap.forEach((field,idx)=>{if(!field)return;const val=cols[idx]?.trim()||'';if(field==='volumen_estimado')row[field]=parseFloat(val)||0;else row[field]=val})
+      if(!row.empresa)continue
       parsed.push(row)
     }
-    setRows(parsed);setErrors(errs);setStep('preview')
+    setRows(parsed);setStep('preview')
   }
-
   async function handleImport(){
-    setStep('importing')
-    const batchSize=20;let done=0
+    setStep('importing');const batchSize=20;let done=0
     for(let i=0;i<rows.length;i+=batchSize){
       await onImport(rows.slice(i,i+batchSize))
       done+=Math.min(batchSize,rows.length-i)
@@ -968,62 +1247,25 @@ function ImportProspectsModal({onClose,onImport,defaultCountry}){
     }
     setStep('done')
   }
-
-  return <Modal title="Importar Prospectos desde CSV" onClose={onClose} wide subtitle="Columnas: country, empresa, contacto, puesto, email, phone, volumen_estimado, notas">
-    {step==='upload'&&<div>
-      <div style={{border:'2px dashed #2D3748',borderRadius:12,padding:'48px 24px',textAlign:'center'}}>
-        <div style={{fontSize:36,marginBottom:14}}>📂</div>
-        <div style={{fontSize:15,fontWeight:600,color:'#F1F5F9',marginBottom:8}}>Seleccioná tu archivo CSV</div>
-        <input type="file" accept=".csv" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>parseCSV(ev.target.result);r.readAsText(f,'UTF-8')}}} style={{marginTop:12}}/>
-      </div>
-      <div style={{marginTop:16,background:'#1A2235',borderRadius:10,padding:14,fontSize:12,color:'#64748B'}}>
-        <strong style={{color:'#94A3B8'}}>Columnas aceptadas:</strong> country, empresa, contacto, puesto, email, phone, volumen_estimado, notas
-      </div>
+  return <Modal title="Importar Prospectos desde CSV" onClose={onClose} wide>
+    {step==='upload'&&<div style={{border:'2px dashed #2D3748',borderRadius:12,padding:'48px 24px',textAlign:'center'}}>
+      <div style={{fontSize:36,marginBottom:14}}>📂</div>
+      <input type="file" accept=".csv" onChange={e=>{const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>parseCSV(ev.target.result);r.readAsText(f,'UTF-8')}}}/>
     </div>}
     {step==='preview'&&<div>
-      <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
-        <div style={{background:'#5CBB0015',border:'1px solid #5CBB0033',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
-          <div style={{fontSize:28,fontWeight:700,color:'#5CBB00'}}>{rows.length}</div>
-          <div style={{fontSize:11,color:'#64748B'}}>prospectos a importar</div>
-        </div>
-        {errors.length>0&&<div style={{background:'#EF444415',border:'1px solid #EF444433',borderRadius:10,padding:14}}>
-          <div style={{fontSize:12,fontWeight:600,color:'#EF4444',marginBottom:6}}>⚠️ {errors.length} filas con problemas</div>
-          {errors.slice(0,3).map((e,i)=><div key={i} style={{fontSize:11,color:'#F87171'}}>• {e}</div>)}
-        </div>}
-      </div>
-      <div style={{background:'#141820',borderRadius:10,overflow:'auto',maxHeight:260,marginBottom:16}}>
-        <table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
-          <thead><tr style={{borderBottom:'1px solid #1E2535'}}>
-            {['País','Empresa','Contacto','Email','Volumen'].map(h=><th key={h} style={{padding:'8px 12px',color:'#64748B',textAlign:'left',background:'#0F1117'}}>{h}</th>)}
-          </tr></thead>
-          <tbody>
-            {rows.slice(0,8).map((r,i)=><tr key={i} style={{borderBottom:'1px solid #1E253530'}}>
-              <td style={{padding:'7px 12px',color:'#94A3B8'}}>{r.country}</td>
-              <td style={{padding:'7px 12px',color:'#F1F5F9',fontWeight:600}}>{r.empresa}</td>
-              <td style={{padding:'7px 12px',color:'#CBD5E1'}}>{r.contacto||'—'}</td>
-              <td style={{padding:'7px 12px',color:'#64748B'}}>{r.email||'—'}</td>
-              <td style={{padding:'7px 12px',color:'#007B84'}}>{r.volumen_estimado||'—'}</td>
-            </tr>)}
-            {rows.length>8&&<tr><td colSpan={5} style={{padding:'8px 12px',color:'#64748B',textAlign:'center'}}>... y {rows.length-8} más</td></tr>}
-          </tbody>
-        </table>
-      </div>
+      <div style={{fontSize:18,fontWeight:700,color:'#5CBB00',marginBottom:16}}>{rows.length} prospectos listos para importar</div>
       <div style={{display:'flex',justifyContent:'space-between'}}>
-        <button onClick={()=>{setStep('upload');setRows([]);setErrors([])}} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>← Volver</button>
-        <GreenBtn onClick={handleImport} disabled={rows.length===0}>Importar {rows.length} prospectos →</GreenBtn>
+        <button onClick={()=>{setStep('upload');setRows([])}} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>← Volver</button>
+        <GreenBtn onClick={handleImport}>Importar {rows.length} →</GreenBtn>
       </div>
     </div>}
     {step==='importing'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
-      <div style={{fontSize:36,marginBottom:16}}>⏳</div>
-      <div style={{height:8,background:'#1E2535',borderRadius:4,marginBottom:10}}>
-        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#5CBB00,#4CAF00)',borderRadius:4,transition:'width 0.3s'}}/>
-      </div>
+      <div style={{height:8,background:'#1E2535',borderRadius:4,marginBottom:10}}><div style={{width:`${progress}%`,height:'100%',background:'#5CBB00',borderRadius:4}}/></div>
       <div style={{fontSize:13,color:'#64748B'}}>{progress}% completado</div>
     </div>}
     {step==='done'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
       <div style={{fontSize:48,marginBottom:16}}>✅</div>
-      <div style={{fontSize:18,fontWeight:700,color:'#5CBB00',marginBottom:8}}>{rows.length} prospectos importados</div>
-      <GreenBtn onClick={onClose}>Cerrar y ver prospectos</GreenBtn>
+      <GreenBtn onClick={onClose}>Cerrar</GreenBtn>
     </div>}
   </Modal>
 }
@@ -1044,23 +1286,13 @@ function DailyAlertModal({activities,leads,onClose,onGo}){
       </div>
       {overdue.length>0&&<div style={{background:'#EF444415',border:'1px solid #EF444433',borderRadius:10,padding:'10px 14px',marginBottom:14}}>
         <div style={{fontSize:12,fontWeight:600,color:'#EF4444',marginBottom:8}}>⚠ {overdue.length} actividad{overdue.length>1?'es':''} vencida{overdue.length>1?'s':''}</div>
-        {overdue.slice(0,3).map(a=>{
-          const lead=leads.find(l=>l.id===a.lead_id)
-          return <div key={a.id} style={{fontSize:12,color:'#F87171',marginBottom:4}}>• {lead?.empresa||'—'} — {a.tipo} (vencía {a.fecha_vencimiento})</div>
-        })}
+        {overdue.slice(0,3).map(a=>{const lead=leads.find(l=>l.id===a.lead_id);return <div key={a.id} style={{fontSize:12,color:'#F87171',marginBottom:4}}>• {lead?.empresa||'—'} — {a.tipo}</div>})}
       </div>}
       {todayActs.length>0&&<div style={{display:'flex',flexDirection:'column',gap:8,marginBottom:20}}>
-        {todayActs.map(a=>{
-          const lead=leads.find(l=>l.id===a.lead_id)
-          return <div key={a.id} style={{background:'#1A1F2E',border:'1px solid #F59E0B33',borderRadius:8,padding:'10px 14px',display:'flex',gap:10,alignItems:'flex-start'}}>
-            <span style={{fontSize:16,flexShrink:0}}>{ACTIVITY_ICONS[a.tipo]||'📌'}</span>
-            <div>
-              <div style={{fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{lead?.empresa||'—'}</div>
-              <div style={{fontSize:11,color:'#94A3B8'}}>{a.tipo}{a.descripcion?` — ${a.descripcion.substring(0,60)}...`:''}</div>
-              {a.proximo_paso&&<div style={{fontSize:11,color:'#5CBB00',marginTop:3}}>→ {a.proximo_paso}</div>}
-            </div>
-          </div>
-        })}
+        {todayActs.map(a=>{const lead=leads.find(l=>l.id===a.lead_id);return <div key={a.id} style={{background:'#1A1F2E',border:'1px solid #F59E0B33',borderRadius:8,padding:'10px 14px'}}>
+          <div style={{fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{lead?.empresa||'—'}</div>
+          <div style={{fontSize:11,color:'#94A3B8'}}>{a.tipo}{a.descripcion?` — ${a.descripcion.substring(0,60)}`:''}</div>
+        </div>})}
       </div>}
       {todayActs.length===0&&overdue.length===0&&<div style={{textAlign:'center',padding:'20px 0',color:'#64748B',fontSize:13}}>No hay actividades para hoy 🎉</div>}
       <div style={{display:'flex',gap:10,justifyContent:'flex-end'}}>
@@ -1087,9 +1319,12 @@ function CRMApp(){
   const[error,setError]=useState(null)
   const[editLead,setEditLead]=useState(null)
   const[showLeadModal,setShowLeadModal]=useState(false)
+  const[showQuickLead,setShowQuickLead]=useState(false)
+  const[detailLead,setDetailLead]=useState(null)
   const[editProspect,setEditProspect]=useState(null)
   const[showProspectModal,setShowProspectModal]=useState(false)
   const[bpmEntity,setBpmEntity]=useState(null)
+  const[fichaAccount,setFichaAccount]=useState(null)
   const[activityLead,setActivityLead]=useState(null)
   const[editActivityData,setEditActivityData]=useState(null)
   const[lossLead,setLossLead]=useState(null)
@@ -1097,10 +1332,10 @@ function CRMApp(){
   const[showImportProspects,setShowImportProspects]=useState(false)
   const[sidebarCollapsed,setSidebarCollapsed]=useState(false)
   const[toast,setToast]=useState(null)
-  const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3500)}
-
   const[showDailyAlert,setShowDailyAlert]=useState(false)
   const[dailyAlertDismissed,setDailyAlertDismissed]=useState(false)
+
+  const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3500)}
 
   useEffect(()=>{
     if(!loading&&activities.length&&!dailyAlertDismissed){
@@ -1109,10 +1344,11 @@ function CRMApp(){
       if(todayActs.length>0)setShowDailyAlert(true)
     }
   },[loading,activities,dailyAlertDismissed])
+
   const effectiveCountry=isRegional?selectedCountry:userCountry
   const countryFilter=useCallback(items=>{
-    if(effectiveCountry==='LATAM') return items
-    if(effectiveCountry==='Regional') return items.filter(i=>i.country==='Regional')
+    if(effectiveCountry==='LATAM')return items
+    if(effectiveCountry==='Regional')return items.filter(i=>i.country==='Regional')
     return items.filter(i=>i.country===effectiveCountry)
   },[effectiveCountry])
 
@@ -1156,7 +1392,7 @@ function CRMApp(){
       setLeads(prev=>[newLead,...prev])
       showToast('Lead creado ✅')
     }
-    setShowLeadModal(false);setEditLead(null)
+    setShowLeadModal(false);setShowQuickLead(false);setEditLead(null)
   }
 
   async function moveLead(lead,newStatus){
@@ -1209,33 +1445,27 @@ function CRMApp(){
         showToast('Actividad registrada ✅')
       }
     }
-    setActivityLead(null)
-    setEditActivityData(null)
+    setActivityLead(null);setEditActivityData(null)
   }
 
   async function toggleActivityDone(act){
     const{error}=await sb.from('activities').update({realizada:!act.realizada}).eq('id',act.id)
-    if(!error){
-      setActivities(prev=>prev.map(a=>a.id===act.id?{...a,realizada:!act.realizada}:a))
-      showToast(act.realizada?'Marcada como pendiente':'Actividad completada ✅')
-    }
+    if(!error){setActivities(prev=>prev.map(a=>a.id===act.id?{...a,realizada:!act.realizada}:a));showToast(act.realizada?'Marcada como pendiente':'Actividad completada ✅')}
   }
 
   async function saveProduct(data){
     if(data.id){
       const{error}=await sb.from('products').update(data).eq('id',data.id)
       if(!error){setProducts(prev=>prev.map(p=>p.id===data.id?data:p));showToast('Producto actualizado ✅')}
-      else showToast('Error al guardar','error')
     }else{
       const{data:np,error}=await sb.from('products').insert([{...data,created_at:new Date().toISOString()}]).select().single()
       if(!error){setProducts(prev=>[np,...prev]);showToast('Producto creado ✅')}
-      else showToast('Error al crear','error')
     }
   }
+
   async function deleteProduct(product){
     const{error}=await sb.from('products').delete().eq('id',product.id)
     if(!error){setProducts(prev=>prev.filter(p=>p.id!==product.id));showToast(`${product.servicio} eliminado`)}
-    else showToast('Error al eliminar','error')
   }
 
   async function saveBPM(data){
@@ -1274,14 +1504,11 @@ function CRMApp(){
   const fAccounts=countryFilter(accounts)
   const fProducts=countryFilter(products)
 
-  return <div style={{display:'flex',height:'100vh',overflow:'hidden',fontFamily:"'DM Sans',sans-serif",background:'#0F1117',color:'#E2E8F0'}}>
+  return <div style={{display:'flex',height:'100vh',overflow:'hidden',background:'#0F1117',color:'#E2E8F0'}}>
     {/* SIDEBAR */}
     <aside style={{width:sidebarCollapsed?60:220,background:'#111212',borderRight:'1px solid #222',display:'flex',flexDirection:'column',transition:'width 0.2s',flexShrink:0,overflow:'hidden'}}>
       <div style={{padding:'12px',borderBottom:'1px solid #222',display:'flex',alignItems:'center',justifyContent:'center',minHeight:62}}>
-        {sidebarCollapsed
-          ? <WynIcon size={36}/>
-          : <WynLogoSmall height={28}/>
-        }
+        {sidebarCollapsed?<WynIcon size={36}/>:<WynLogoSmall height={28}/>}
       </div>
       {!sidebarCollapsed&&<div style={{padding:'10px 10px 6px'}}>
         {isRegional
@@ -1316,6 +1543,7 @@ function CRMApp(){
         <div style={{display:'flex',gap:8}}>
           {(view==='leads'||view==='pipeline')&&<>
             <button onClick={()=>setShowImport(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#94A3B8',fontSize:12,cursor:'pointer'}}>↑ Importar CSV</button>
+            <button onClick={()=>setShowQuickLead(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #89D44A',background:'transparent',color:'#89D44A',fontSize:12,cursor:'pointer',fontWeight:600}}>+ Rápido</button>
             <GreenBtn onClick={()=>{setEditLead(null);setShowLeadModal(true)}}>+ Nuevo Lead</GreenBtn>
           </>}
           {view==='prospects'&&<><button onClick={()=>setShowImportProspects(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#94A3B8',fontSize:12,cursor:'pointer'}}>↑ Importar CSV</button><GreenBtn onClick={()=>{setEditProspect(null);setShowProspectModal(true)}}>+ Nuevo Prospecto</GreenBtn></>}
@@ -1328,10 +1556,10 @@ function CRMApp(){
         </div>}
         {loading?<Loader/>:<>
           {view==='dashboard'&&<DashboardView leads={fLeads} accounts={fAccounts} prospects={fProspects} activities={activities}/>}
-          {view==='pipeline'&&<PipelineView leads={fLeads} activities={activities} onMoveStage={moveLead} onSelect={l=>{setEditLead(l);setShowLeadModal(true)}} onConfirmLoss={setLossLead}/>}
-          {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead}/>}
+          {view==='pipeline'&&<PipelineView leads={fLeads} activities={activities} onMoveStage={moveLead} onSelect={l=>setDetailLead(l)} onConfirmLoss={setLossLead}/>}
+          {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead} onViewDetail={l=>setDetailLead(l)}/>}
           {view==='prospects'&&<ProspectsView prospects={fProspects} onEdit={p=>{setEditProspect(p);setShowProspectModal(true)}} onConvert={convertProspectToLead}/>}
-          {view==='accounts'&&<AccountsView accounts={fAccounts} onBPM={setBpmEntity}/>}
+          {view==='accounts'&&<AccountsView accounts={fAccounts} onBPM={setBpmEntity} onFicha={setFichaAccount}/>}
           {view==='activities'&&<ActivitiesView activities={activities} leads={fLeads} onEdit={(act,lead)=>{setEditActivityData({act,lead});setActivityLead(lead)}} onToggleDone={toggleActivityDone}/>}
           {view==='products'&&<ProductsView products={fProducts} isRegional={isRegional} canEdit={isRegional||profile?.role==='ejecutivo'} userCountry={userCountry} onSave={saveProduct} onDelete={deleteProduct}/>}
           {view==='reports'&&<ReportsView leads={fLeads} accounts={fAccounts}/>}
@@ -1339,9 +1567,13 @@ function CRMApp(){
       </div>
     </main>
 
+    {/* MODALS */}
+    {showQuickLead&&<QuickLeadModal onClose={()=>setShowQuickLead(false)} onSave={saveLead} defaultCountry={!isRegional?userCountry:undefined}/>}
     {showLeadModal&&<LeadModal lead={editLead} onClose={()=>{setShowLeadModal(false);setEditLead(null)}} onSave={saveLead} defaultCountry={!isRegional?userCountry:undefined}/>}
+    {detailLead&&<LeadDetailModal lead={detailLead} onClose={()=>setDetailLead(null)} onEdit={l=>{setDetailLead(null);setEditLead(l);setShowLeadModal(true)}} activities={activities}/>}
     {showProspectModal&&<ProspectModal prospect={editProspect} onClose={()=>{setShowProspectModal(false);setEditProspect(null)}} onSave={saveProspect} defaultCountry={!isRegional?userCountry:undefined}/>}
     {bpmEntity&&<BPMModal entity={bpmEntity} onClose={()=>setBpmEntity(null)} onSave={saveBPM}/>}
+    {fichaAccount&&<AccountFichaModal account={fichaAccount} onClose={()=>setFichaAccount(null)} profile={profile}/>}
     {activityLead&&<ActivityModal lead={activityLead} activity={editActivityData?.act||null} onClose={()=>{setActivityLead(null);setEditActivityData(null)}} onSave={saveActivity}/>}
     {showDailyAlert&&<DailyAlertModal activities={activities} leads={leads} onClose={()=>{setShowDailyAlert(false);setDailyAlertDismissed(true)}} onGo={()=>{setShowDailyAlert(false);setDailyAlertDismissed(true);setView('activities')}}/>}
     {lossLead&&<LossModal lead={lossLead} onClose={()=>setLossLead(null)} onConfirm={reason=>confirmLoss(lossLead,reason)}/>}
@@ -1351,7 +1583,6 @@ function CRMApp(){
   </div>
 }
 
-// ── ROOT ──────────────────────────────────────────────────
 function AppContent(){
   const{user,loading}=useAuth()
   if(loading)return <div style={{minHeight:'100vh',background:'#080C12',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -1367,8 +1598,5 @@ function App(){return <AuthProvider><AppContent/></AuthProvider>}
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>)
 </script>
 </body>
-
-
-  
 </html>
 
