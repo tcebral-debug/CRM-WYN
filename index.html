@@ -736,19 +736,23 @@ function DashboardView({leads,accounts,prospects,activities}){
   const totalVolumen=fl.filter(l=>l.status!=='Perdido').reduce((s,l)=>s+(l.volumen||0),0)
   const staleCount=leads.filter(l=>isStale(l,activities)).length
 
-  const byStage=PIPELINE_STAGES.map(s=>({stage:s,count:fl.filter(l=>l.status===s).length}))
+  const byStage=PIPELINE_STAGES.filter(s=>s!=='Perdido').map(s=>({stage:s,count:fl.filter(l=>l.status===s).length}))
+  const activeTotal=fl.filter(l=>l.status!=='Perdido').length
 
+  const flSinPerdidos=fl.filter(l=>l.status!=='Perdido')
   const LATAM_TOTAL={
     country:'🌎 LATAM',
-    leads:fl.length,
+    leads:flSinPerdidos.length,
     ganados:ganados.length,
-    revenue:fl.reduce((a,l)=>a+(l.revenue||0),0)
+    revenue:flSinPerdidos.reduce((a,l)=>a+(l.revenue||0),0),
+    volumen:flSinPerdidos.reduce((a,l)=>a+(l.volumen||0),0)
   }
   const byCountry=COUNTRIES.filter(c=>c!=='Regional').map(c=>({
     country:c,
-    leads:fl.filter(l=>l.country===c).length,
-    ganados:fl.filter(l=>l.country===c&&l.status==='Ganado').length,
-    revenue:fl.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0)
+    leads:flSinPerdidos.filter(l=>l.country===c).length,
+    ganados:flSinPerdidos.filter(l=>l.country===c&&l.status==='Ganado').length,
+    revenue:flSinPerdidos.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0),
+    volumen:flSinPerdidos.filter(l=>l.country===c).reduce((a,l)=>a+(l.volumen||0),0)
   })).filter(c=>c.leads>0)
 
   const lossReasons=fl.filter(l=>l.status==='Perdido'&&l.loss_reason).reduce((acc,l)=>{acc[l.loss_reason]=(acc[l.loss_reason]||0)+1;return acc},{})
@@ -762,9 +766,9 @@ function DashboardView({leads,accounts,prospects,activities}){
     {/* Fila 1: Pipeline */}
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
       <StatCard label="Leads Activos" value={activeLeads.length} icon="🎯" color="#3B82F6" sub={`${prospects.length} prospectos`}/>
-      <StatCard label="Propuestas Enviadas" value={propuestasEnviadas.length} icon="📤" color="#F59E0B" sub={`${fmtCur(propuestasEnviadas.reduce((s,l)=>s+(l.revenue||0),0))} revenue`}/>
-      <StatCard label="Propuestas Aceptadas" value={propuestasGanadas.length} icon="🤝" color="#89D44A" sub={`${fmtCur(propuestasGanadas.reduce((s,l)=>s+(l.revenue||0),0))} revenue`}/>
-      <StatCard label="Ganados" value={ganados.length} icon="🏆" color="#5CBB00" sub={`${perdidos.length} perdidos`}/>
+      <StatCard label="Propuestas Enviadas" value={propuestasEnviadas.length} icon="📤" color="#F59E0B" sub={`${fmtNum(propuestasEnviadas.reduce((s,l)=>s+(l.volumen||0),0))} envíos/mes`}/>
+      <StatCard label="Propuestas Aceptadas" value={propuestasGanadas.length} icon="🤝" color="#89D44A" sub={`${fmtNum(propuestasGanadas.reduce((s,l)=>s+(l.volumen||0),0))} envíos/mes`}/>
+      <StatCard label="Ganados" value={ganados.length} icon="🏆" color="#5CBB00" sub={`${fmtNum(ganados.reduce((s,l)=>s+(l.volumen||0),0))} envíos/mes`}/>
     </div>
 
     {/* Fila 2: Métricas globales */}
@@ -780,28 +784,30 @@ function DashboardView({leads,accounts,prospects,activities}){
         <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Pipeline por Etapa</div>
         {byStage.map(s=><div key={s.stage} style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
           <div style={{width:130,fontSize:11,color:'#94A3B8'}}>{s.stage}</div>
-          <div style={{flex:1,background:'#1E2535',borderRadius:4,height:7}}><div style={{width:`${fl.length>0?(s.count/fl.length)*100:0}%`,height:'100%',background:stageColor(s.stage),borderRadius:4}}/></div>
+          <div style={{flex:1,background:'#1E2535',borderRadius:4,height:7}}><div style={{width:`${activeTotal>0?(s.count/activeTotal)*100:0}%`,height:'100%',background:stageColor(s.stage),borderRadius:4}}/></div>
           <div style={{width:22,fontSize:12,fontWeight:700,color:'#E2E8F0',textAlign:'right'}}>{s.count}</div>
         </div>)}
       </Card>
 
       <Card>
-        <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Performance por País</div>
-        <div style={{fontSize:10,display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',color:'#475569',textTransform:'uppercase',paddingBottom:6,borderBottom:'1px solid #1E2535',marginBottom:4}}>
-          <div>País</div><div>Leads</div><div>Ganados</div><div>Revenue</div>
+        <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Performance por País <span style={{fontSize:10,color:'#475569',fontWeight:400}}>(sin perdidos)</span></div>
+        <div style={{fontSize:10,display:'grid',gridTemplateColumns:'1fr 36px 50px 72px 70px',color:'#475569',textTransform:'uppercase',paddingBottom:6,borderBottom:'1px solid #1E2535',marginBottom:4}}>
+          <div>País</div><div>Leads</div><div>Ganados</div><div>Revenue</div><div>Envíos</div>
         </div>
         {/* LATAM acumulado */}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',fontSize:12,padding:'6px 0',borderBottom:'2px solid #2D3748',marginBottom:4,background:'#1A1F2E',borderRadius:6,paddingLeft:6}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 36px 50px 72px 70px',fontSize:12,padding:'6px 0 6px 6px',borderBottom:'2px solid #2D3748',marginBottom:4,background:'#1A1F2E',borderRadius:6}}>
           <div style={{color:'#F1F5F9',fontWeight:700}}>{LATAM_TOTAL.country}</div>
           <div style={{color:'#3B82F6',fontWeight:700}}>{LATAM_TOTAL.leads}</div>
           <div style={{color:'#5CBB00',fontWeight:700}}>{LATAM_TOTAL.ganados}</div>
           <div style={{color:'#8B5CF6',fontWeight:700,fontSize:10}}>{fmtCur(LATAM_TOTAL.revenue)}</div>
+          <div style={{color:'#007B84',fontWeight:700,fontSize:10}}>{fmtNum(LATAM_TOTAL.volumen)}</div>
         </div>
-        {byCountry.map(c=><div key={c.country} style={{display:'grid',gridTemplateColumns:'1fr 40px 54px 90px',fontSize:12,padding:'5px 0 5px 6px',borderBottom:'1px solid #1E253540'}}>
+        {byCountry.map(c=><div key={c.country} style={{display:'grid',gridTemplateColumns:'1fr 36px 50px 72px 70px',fontSize:12,padding:'5px 0 5px 6px',borderBottom:'1px solid #1E253540'}}>
           <div style={{color:'#94A3B8'}}>{c.country}</div>
           <div style={{color:'#3B82F6',fontWeight:600}}>{c.leads}</div>
           <div style={{color:'#5CBB00',fontWeight:600}}>{c.ganados}</div>
           <div style={{color:'#8B5CF6',fontWeight:600,fontSize:10}}>{fmtCur(c.revenue)}</div>
+          <div style={{color:'#007B84',fontWeight:600,fontSize:10}}>{fmtNum(c.volumen)}</div>
         </div>)}
       </Card>
     </div>
@@ -1599,4 +1605,3 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App/>)
 </script>
 </body>
 </html>
-
