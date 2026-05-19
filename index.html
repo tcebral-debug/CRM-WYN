@@ -50,97 +50,8 @@ const ACTIVITY_COLORS = {"Llamada":"#3B82F6","Email":"#8B5CF6","Reunión":"#5CBB
 const EXCEL_STATUS_MAP = {'Primer Contacto (Contactado)':'Primer Contacto','Primer Contacto':'Primer Contacto','Reunión (En Proceso / Visitado)':'Reunión','Reunión':'Reunión','Propuesta Enviada':'Propuesta Enviada','Re-Propuesta':'Propuesta Ganada','Propuesta Ganada':'Propuesta Ganada','Onboarding':'Ganado','Ganado':'Ganado','Perdido':'Perdido'}
 const STALE_DAYS = 7
 
-// ── PRICING APPROVAL CONSTANTS ────────────────────────────
-const PRICING_APPROVAL_LEVELS = {
-  NONE: 'none',           // 0% — tarifa pública, ok automático
-  TOMAS: 'tomas',         // >0% ≤15% — aprueba Tomás Cebrál
-  PEDRO: 'pedro'          // >15% — aprueba Pedro Torello
-}
-const PRICING_STATUSES = {
-  DRAFT: 'Borrador',
-  READY: 'Lista para enviar',
-  PENDING_TOMAS: 'Pendiente aprobación — T. Cebrál',
-  PENDING_PEDRO: 'Pendiente aprobación — P. Torello',
-  APPROVED: 'Aprobada',
-  REJECTED: 'Rechazada',
-  CONDITIONS_REVIEW: 'Revisión de condiciones',
-  CONDITIONS_APPROVED: 'Condiciones aprobadas — T. Cebrál',
-  SENT: 'Enviada al cliente',
-  ONBOARDING: 'Alta de cliente habilitada'
-}
-const PRICING_STATUS_COLORS = {
-  'Borrador': '#64748B',
-  'Lista para enviar': '#3B82F6',
-  'Pendiente aprobación — T. Cebrál': '#F59E0B',
-  'Pendiente aprobación — P. Torello': '#EF4444',
-  'Aprobada': '#5CBB00',
-  'Rechazada': '#EF4444',
-  'Revisión de condiciones': '#8B5CF6',
-  'Condiciones aprobadas — T. Cebrál': '#5CBB00',
-  'Enviada al cliente': '#3B82F6',
-  'Alta de cliente habilitada': '#5CBB00'
-}
-const EXCEPTION_CATEGORIES = ["Marketplace grande","Partner clave","Apertura país","Volumen ancla","Cross-sell estratégico"]
-const SERVICES = ["Same Day","Next Day","Standard"]
-const APPROVERS = {
-  tomas: {name:'Tomás Cebrál', role:'Regional', range:'hasta 15% desc.'},
-  pedro: {name:'Pedro Torello', role:'Dirección', range:'más de 15% desc.'}
-}
-
-// Tarifas base por país / zona / servicio (USD por envío)
-const BASE_TARIFFS = {
-  'Argentina': {
-    zones: ['CABA/AMBA','Interior'],
-    tariffs: {
-      'CABA/AMBA': {'Same Day':4.20,'Next Day':2.80,'Standard':1.90},
-      'Interior':   {'Same Day':null,'Next Day':3.60,'Standard':2.40}
-    },
-    cod: true
-  },
-  'Chile': {
-    zones: ['Santiago','Extremos'],
-    tariffs: {
-      'Santiago': {'Same Day':3.80,'Next Day':2.50,'Standard':1.70},
-      'Extremos': {'Same Day':null,'Next Day':4.20,'Standard':2.90}
-    },
-    cod: true
-  },
-  'Perú': {
-    zones: ['Lima','Provincias'],
-    tariffs: {
-      'Lima':       {'Same Day':3.50,'Next Day':2.30,'Standard':1.60},
-      'Provincias': {'Same Day':null,'Next Day':3.80,'Standard':2.50}
-    },
-    cod: true
-  },
-  'Costa Rica': {
-    zones: ['GAM','Fuera de GAM'],
-    tariffs: {
-      'GAM':          {'Same Day':4.00,'Next Day':2.70,'Standard':1.80},
-      'Fuera de GAM': {'Same Day':null,'Next Day':3.90,'Standard':2.60}
-    },
-    cod: false
-  },
-  'El Salvador': {
-    zones: ['Nacional'],
-    tariffs: {
-      'Nacional': {'Same Day':3.90,'Next Day':2.60,'Standard':1.75}
-    },
-    cod: true
-  }
-}
-
-function getPricingApprovalLevel(discountPct) {
-  if (discountPct <= 0) return PRICING_APPROVAL_LEVELS.NONE
-  if (discountPct <= 15) return PRICING_APPROVAL_LEVELS.TOMAS
-  return PRICING_APPROVAL_LEVELS.PEDRO
-}
-
-function getPricingStatusFromLevel(level) {
-  if (level === PRICING_APPROVAL_LEVELS.NONE) return PRICING_STATUSES.READY
-  if (level === PRICING_APPROVAL_LEVELS.TOMAS) return PRICING_STATUSES.PENDING_TOMAS
-  return PRICING_STATUSES.PENDING_PEDRO
-}
+// ── PERU LEADS DATA (carga masiva Ronald Farfán) ──────────
+const PERU_LEADS_DATA = [{"empresa":"FUXION BIOTECH S.A.C","contacto":"maria julia ramirez","email":"mramirez@fuxion.net"},{"empresa":"COMERCIAL MONT S.A.C.","contacto":"Magaly Monsante","email":"mmonsante@platanitos.com"},{"empresa":"LG ELECTRONICS PERU","contacto":"Kamal Ahmad","email":"Kamal.ahmad@lge.com"},{"empresa":"TIENDAS POR DEPARTAMENTO RIPLEY SA","contacto":"jorge nigro","email":"jnigro@ripley.com.pe"},{"empresa":"BATA PERU","contacto":"milagros quijaite","email":"milagros.quijaite@bata.com"},{"empresa":"TRIATHLON","contacto":"pedro tello","email":"Ptello@triathlon-sport.com"},{"empresa":"CONCEPTO.COM","contacto":"Eduardo Figueroa","email":"efigueroa@conceptocom.pe"},{"empresa":"XIAOMI TECHNOLOGIES PERU S.A.C","contacto":"JACK ZOU","email":"zouyanan@xiaomi.com"},{"empresa":"DHL GLOBAL FORWARDING PERU S.A.","contacto":"MAURICIO ESPINOZA","email":"mauricio.espinoza@dhl.com"},{"empresa":"SAMSUNG SDS GLOBAL","contacto":"Lissette Lorenzo","email":"lissette.glh@samsung.com"},{"empresa":"VELEZ","contacto":"ANGELA SANCHEZ","email":"asanchez@cuerosvelez.com"},{"empresa":"NU SKIN PERU S.A.C.","contacto":"JOAN PADILLA","email":"jpadilla@nuskin.com"},{"empresa":"COOLBOX","contacto":"ALEXANDRA FERRER","email":"aferrer@rashperu.com"},{"empresa":"PERU FORUS S.A.","contacto":"MAYRA ESPINOZA","email":"mespinoza@forus.pe"},{"empresa":"LEVIS","contacto":"IVAN OBREGON","email":"iobregon@levi.com"},{"empresa":"SENTUA","contacto":"DORIS QUIROZ","email":"dquiroz@perfumeriasunidas.com.pe"},{"empresa":"DH EMPRESAS PERU S.A.","contacto":"ADOLFO CARREÑO","email":"adolfo.carreno@casaideas.com"},{"empresa":"ORIFLAME PERU SA","contacto":"Luis enrique Arteaga","email":"Luis. Arteaga@oriflame.com"},{"empresa":"ELEDE PERU","contacto":"PAULA ARIZA","email":""},{"empresa":"INDUSTRIAS SAN MIGUEL","contacto":"HANS VILLAMAR","email":""},{"empresa":"NAOS-BIODERMA","contacto":"FERNANDA AYARZA","email":"fernanda.martinez@la.naos.com"},{"empresa":"ALFAPARF MILANO","contacto":"JEAN TUMBALOVOS","email":"jtumbalobos@alfaparf.com.pe"},{"empresa":"INFANTI (Dorel)","contacto":"EDUARDO TRELLES","email":"Eduardo.trelles@comexa.com.pe"},{"empresa":"TOPSA PERU S.A.C","contacto":"","email":""},{"empresa":"ZARA","contacto":"JUAN PABLO CHACON","email":"juan.chacon@modatrading.com.pa"},{"empresa":"FOOTLOOSE","contacto":"ILENE OJEDA","email":"ilene.ojeda@footloose.pe"},{"empresa":"CROCS","contacto":"","email":""},{"empresa":"OPTICAS GMO PERU S.A.C","contacto":"","email":""},{"empresa":"CHRONOS","contacto":"EDUARDO CARRILLO","email":"ecarrillo@drasac.com.pe"},{"empresa":"PUMA","contacto":"DIEGO SANTOLALLA","email":"diego.santolalla@puma.com"},{"empresa":"ASPERSUD","contacto":"Daniel Silvestre","email":"silvestredr@churchofjesuschrist.org"},{"empresa":"SOMETIMES PERU SA","contacto":"Andres Ruge - Ecommerce","email":"coordinador.logistico@sometimes.com.pe"},{"empresa":"CETCO S.A.","contacto":"ROBERTO ROSAS","email":"rrosas@belcorp.biz"},{"empresa":"MARY KAY PERU S.R.L.","contacto":"Roggers Alva","email":"roggers.alva@mkcorp.com"},{"empresa":"SAMSONITE PERU SAC","contacto":"Edgar Alvarez","email":"edgar.alvarez@samsonite.com"},{"empresa":"LIBRERIAS CRISOL SAC","contacto":"IVAN VALDEZ","email":"ivan.valdez@crisol.com.pe"},{"empresa":"METAS PERU (VICTORIA SECRET)","contacto":"ANGEL HERNANDEZ","email":"vsecommpe@metasperu.com"},{"empresa":"Q.P.R. SAC","contacto":"LUIS AYMA","email":"layma@qualityproducts.com.pe"},{"empresa":"Dropi","contacto":"WILLIAM MORALES","email":"wmorales@dropi.co"},{"empresa":"TOPITOP","contacto":"LIZET CIPRIANO","email":"e-commerce_cd@topitop.com.pe"},{"empresa":"KOMAX PERU S.A.C.","contacto":"Carlos Bravo","email":"cbravo@komax.com.pe"},{"empresa":"SHOE TRADE S.A.C","contacto":"alex calle","email":"acalle@brunoferrini.com.pe"},{"empresa":"4 LIFE","contacto":"miguel cabrera","email":"miguelcaq@4life.com"},{"empresa":"UPS","contacto":"alejandro varillas","email":"AVarillas@ups.com"},{"empresa":"SERVITEBCA PERU S.A","contacto":"johana ramirez","email":"sramirez@tebca.com.pe"},{"empresa":"LAB NUTRITION CORP SAC","contacto":"manuel lecaros","email":"mlecaros@labnutrition.com"},{"empresa":"TAI LOY S.A.","contacto":"Elvis Arroyo","email":"despachos@tailoy.com.pe"},{"empresa":"PREXPE","contacto":"cecilia arakaki","email":"carakaki@prexcard.com"},{"empresa":"SPECIAL BOOK SERVICES S.A.","contacto":"HENRY TITO","email":"HTITO@SBS.COM.PE"},{"empresa":"BIJOU","contacto":"NOE CAMPOS","email":"noe.campos@bsg.global"},{"empresa":"EL S A","contacto":"ORIANA GOMEZ","email":"ogomez@el.com.pe"},{"empresa":"ASOCIACION AUTOMOTRIZ DEL PERU","contacto":"NADIR CISCNEROS","email":"ncisneros@aap.org.pe"},{"empresa":"CALZADOS AZALEIA","contacto":"ANGEL CHALLCO","email":"achallco@azaleia.com.pe"},{"empresa":"TALLER DE CONFECCIONES SAN LUIS S.A.","contacto":"DAVID PEÑA","email":"davidpena@kidsmadehere.com"},{"empresa":"CREDITEX","contacto":"FELIPE SOTELO","email":"FSotelo@creditex.com.pe"},{"empresa":"CALIMOD","contacto":"Jose Velasquez","email":"jvelasquez@calimod.com.pe"},{"empresa":"TIENDAS PIEERS","contacto":"ENRIQUE RODRIGUEZ","email":"jefatura.ecommerce@pieers.com"},{"empresa":"TC STORE","contacto":"KAREN HUARINGA","email":"khuaringa@grupofisher.com"},{"empresa":"ULTRA BRANDS SAC","contacto":"MACARENA PEDRAZA","email":"macarena@ultrabrands.pe"},{"empresa":"EDENRED PERU SA","contacto":"RICHARD CACERES","email":"Richard.CACERES@edenred.com"},{"empresa":"HERBALIFE","contacto":"ALEJANDRO OCARIZ","email":"alejandrooc@herbalife.com"},{"empresa":"OLA Y MONTAÑA (THE BOX)","contacto":"JOSE MORAN","email":"jmoran@palmaslogistics.com"},{"empresa":"PROMELSA","contacto":"ALONSO VICOS","email":"distribucion@promelsa.com.pe"},{"empresa":"PIONER","contacto":"STHEPHANY LOPEZ","email":"sthephany.lopez@masisac.com.pe"},{"empresa":"TRUPER (HERRACON)","contacto":"CARLOS CABRAL","email":"cecabrall@herracom.pe"},{"empresa":"ELECTROLUX","contacto":"EDY LOPEZ","email":"edy.lopez@electrolux.com"},{"empresa":"TIENDA MIA","contacto":"MARTIN NUÑEZ","email":"martin.nunez@tiendamia.com"},{"empresa":"OESCHLE","contacto":"JOSE TASAYCO","email":"Jose.Tasayco@oechsle.pe"},{"empresa":"LEMON CASH","contacto":"SOFIA BRUNENGO","email":"sofia.brunengo@lemon.me"},{"empresa":"HIRAOKA","contacto":"MARIELLA LOZADA","email":"mariellozada@hiraoka.com.pe"},{"empresa":"OFERTEC","contacto":"FERNANDO RODRIGUEZ","email":"fernar@bxperu.com"},{"empresa":"MARATHON","contacto":"PAUL OLORTEGUI","email":"paul.olortegui@equinox-intl.com"},{"empresa":"VALDITEX","contacto":"MARIO CHAVEZ","email":"mchavez@valditex.com"},{"empresa":"BUSCA LIBRE","contacto":"PAOLA JIMENEZ","email":"p.jimenez@buscalibre.com"},{"empresa":"JUNTOZ -TIENDAS EFE","contacto":"JHON PELAEZ","email":"jpelaezo@efe-lc.com.pe"}]
 
 const stageColor = s => STAGE_COLORS[s] || '#6B7280'
 const fmtNum = n => n != null && n !== '' ? Number(n).toLocaleString('es-AR') : '—'
@@ -486,335 +397,6 @@ function BPMModal({entity,onClose,onSave}){
   </Modal>
 }
 
-// ── PRICING APPROVAL MODAL ────────────────────────────────
-function PricingApprovalModal({lead, onClose, onSave, isRegional, profile}) {
-  const existing = lead?.pricing_proposal || {}
-  const leadCountry = lead?.country || ''
-  const countryData = BASE_TARIFFS[leadCountry] || null
-  const defaultZone = countryData ? countryData.zones[0] : ''
-
-  const [form, setForm] = useState({
-    zona: existing.zona || defaultZone,
-    servicio: existing.servicio || 'Next Day',
-    cod: existing.cod || false,
-    tarifa_base: existing.tarifa_base || '',
-    tarifa_propuesta: existing.tarifa_propuesta || '',
-    volumen_est: existing.volumen_est || lead?.volumen || '',
-    justificacion: existing.justificacion || '',
-    exception_category: existing.exception_category || '',
-    review_date: existing.review_date || '',
-    approval_status: existing.approval_status || '',
-    approval_note: existing.approval_note || '',
-    conditions_note: existing.conditions_note || '',
-    conditions_approved: existing.conditions_approved || false,
-  })
-  const [saving, setSaving] = useState(false)
-  const [step, setStep] = useState(existing.approval_status === 'Aprobada' || existing.approval_status === 'Lista para enviar' ? 'conditions' : 'tariff')
-
-  const f = (k,v) => {
-    const next = {...form, [k]:v}
-    if(k==='zona' || k==='servicio') {
-      if(countryData && countryData.tariffs[next.zona]) {
-        const base = countryData.tariffs[next.zona][next.servicio]
-        if(base) next.tarifa_base = base.toString()
-      }
-    }
-    setForm(next)
-  }
-
-  const tarifaBase = parseFloat(form.tarifa_base) || 0
-  const tarifaProp = parseFloat(form.tarifa_propuesta) || tarifaBase
-  const discountPct = tarifaBase > 0 ? Math.max(0, ((tarifaBase - tarifaProp) / tarifaBase) * 100) : 0
-  const level = getPricingApprovalLevel(discountPct)
-
-  const approver = level === PRICING_APPROVAL_LEVELS.PEDRO ? APPROVERS.pedro : level === PRICING_APPROVAL_LEVELS.TOMAS ? APPROVERS.tomas : null
-  const isOnboarding = existing.conditions_approved
-
-  const levelInfo = {
-    none:  {label:'Sin descuento', color:'#5CBB00', icon:'✅', desc:'Tarifa pública — aprobación automática. Podés enviar al cliente directo.'},
-    tomas: {label:'Aprueba Tomás Cebrál', color:'#F59E0B', icon:'🟡', desc:'Descuento 1–15% — requiere aprobación de Tomás Cebrál (Regional) antes de enviar.'},
-    pedro: {label:'Aprueba Pedro Torello', color:'#EF4444', icon:'🔴', desc:'Descuento >15% — requiere aprobación de Pedro Torello (Dirección).'},
-  }[level]
-
-  const canApproveDiscount = isRegional && level !== PRICING_APPROVAL_LEVELS.NONE
-  const canApproveConditions = isRegional
-
-  async function handleSave(overrideStatus, extra={}) {
-    setSaving(true)
-    const autoStatus = overrideStatus || getPricingStatusFromLevel(level)
-    const proposal = {
-      ...form,
-      ...extra,
-      discount_pct: parseFloat(discountPct.toFixed(2)),
-      approval_level: level,
-      approval_status: overrideStatus || form.approval_status || autoStatus,
-      updated_at: new Date().toISOString(),
-      updated_by: profile?.email || '',
-    }
-    await onSave({ pricing_proposal: proposal })
-    setSaving(false)
-    onClose()
-  }
-
-  const stepStyle = (s) => ({
-    padding:'6px 14px', borderRadius:20, border:`1px solid ${step===s?'#5CBB00':'#2D3748'}`,
-    background:step===s?'#5CBB0022':'transparent', color:step===s?'#5CBB00':'#64748B',
-    fontSize:12, cursor:'pointer', fontWeight:step===s?600:400
-  })
-
-  return <Modal title={`Propuesta Comercial — ${lead?.empresa}`} onClose={onClose} wide subtitle={`${lead?.country} · ${lead?.status}`}>
-
-    {/* Step tabs */}
-    <div style={{display:'flex',gap:8,marginBottom:18}}>
-      <button style={stepStyle('tariff')} onClick={()=>setStep('tariff')}>1 · Tarifa y descuento</button>
-      <button style={stepStyle('conditions')} onClick={()=>setStep('conditions')}>2 · Condiciones y alta</button>
-      {existing.approval_status && <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
-        <span style={{fontSize:11,color:'#64748B'}}>Estado:</span>
-        <Badge text={existing.approval_status} color={PRICING_STATUS_COLORS[existing.approval_status]||'#64748B'}/>
-      </div>}
-    </div>
-
-    {/* ── STEP 1: TARIFF ── */}
-    {step==='tariff' && <div style={{display:'flex',flexDirection:'column',gap:14}}>
-
-      {/* Country tariff reference */}
-      {countryData && <div style={{background:'#141820',border:'1px solid #1E2535',borderRadius:10,padding:14}}>
-        <div style={{fontSize:11,color:'#64748B',textTransform:'uppercase',letterSpacing:.8,marginBottom:10}}>Tarifas base — {leadCountry}</div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(150px,1fr))',gap:8}}>
-          {countryData.zones.map(zone=><div key={zone} style={{background:'#1A1F2E',borderRadius:8,padding:'10px 12px'}}>
-            <div style={{fontSize:11,fontWeight:600,color:'#94A3B8',marginBottom:6}}>{zone}</div>
-            {SERVICES.map(svc=>{
-              const price = countryData.tariffs[zone][svc]
-              const isSelected = form.zona===zone && form.servicio===svc
-              return <div key={svc} onClick={()=>{if(price){f('zona',zone);f('servicio',svc)}}} style={{display:'flex',justifyContent:'space-between',padding:'4px 6px',borderRadius:5,marginBottom:2,cursor:price?'pointer':'default',background:isSelected?'#5CBB0022':price?'transparent':'transparent',border:isSelected?'1px solid #5CBB0044':'1px solid transparent'}}>
-                <span style={{fontSize:11,color:price?'#94A3B8':'#3D4A5C'}}>{svc}</span>
-                <span style={{fontSize:11,fontWeight:600,color:price?(isSelected?'#5CBB00':'#F1F5F9'):'#3D4A5C'}}>{price?`USD ${price.toFixed(2)}`:'—'}</span>
-              </div>
-            })}
-          </div>)}
-        </div>
-        {countryData.cod && <div style={{marginTop:8,display:'flex',alignItems:'center',gap:8}}>
-          <label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:12,color:'#94A3B8'}}>
-            <input type="checkbox" checked={form.cod} onChange={e=>f('cod',e.target.checked)} style={{width:15,height:15}}/>
-            COD (Cash on Delivery)
-            {form.cod && <Badge text="Activo" color="#5CBB00"/>}
-          </label>
-        </div>}
-        {!countryData.cod && <div style={{marginTop:8,fontSize:11,color:'#64748B'}}>⚠ COD no disponible en {leadCountry}</div>}
-      </div>}
-
-      {/* Tarifa seleccionada y propuesta */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
-        <div style={{background:'#1A1F2E',borderRadius:8,padding:'10px 12px'}}>
-          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:4}}>Zona seleccionada</div>
-          <div style={{fontSize:14,fontWeight:700,color:'#F1F5F9'}}>{form.zona||'—'}</div>
-        </div>
-        <div style={{background:'#1A1F2E',borderRadius:8,padding:'10px 12px'}}>
-          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:4}}>Servicio</div>
-          <div style={{fontSize:14,fontWeight:700,color:'#F1F5F9'}}>{form.servicio||'—'}</div>
-        </div>
-        <div style={{background:'#1A1F2E',borderRadius:8,padding:'10px 12px'}}>
-          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:4}}>Tarifa base (USD)</div>
-          <div style={{fontSize:14,fontWeight:700,color:'#5CBB00'}}>{form.tarifa_base?`USD ${parseFloat(form.tarifa_base).toFixed(2)}`:'—'}</div>
-        </div>
-      </div>
-
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-        <FInput label="Tarifa propuesta al cliente (USD)" value={form.tarifa_propuesta} onChange={v=>f('tarifa_propuesta',v)} type="number"/>
-        <FInput label="Volumen estimado (envíos/mes)" value={form.volumen_est} onChange={v=>f('volumen_est',v)} type="number"/>
-      </div>
-
-      {/* Descuento badge */}
-      <div style={{background:'#1A1F2E',border:`2px solid ${levelInfo.color}44`,borderRadius:10,padding:'14px 16px',display:'flex',alignItems:'center',gap:14}}>
-        <div style={{fontSize:26}}>{levelInfo.icon}</div>
-        <div style={{flex:1}}>
-          <div style={{display:'flex',alignItems:'baseline',gap:10,marginBottom:4}}>
-            <span style={{fontSize:24,fontWeight:700,color:levelInfo.color}}>{discountPct.toFixed(1)}%</span>
-            <span style={{fontSize:12,color:'#94A3B8'}}>descuento sobre tarifa base</span>
-            <span style={{marginLeft:'auto',background:levelInfo.color+'22',color:levelInfo.color,fontSize:11,fontWeight:700,padding:'3px 10px',borderRadius:20}}>{levelInfo.label}</span>
-          </div>
-          <div style={{fontSize:11,color:'#64748B'}}>{levelInfo.desc}</div>
-        </div>
-      </div>
-
-      {/* Justificación si hay descuento */}
-      {level !== PRICING_APPROVAL_LEVELS.NONE && <div>
-        <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase',display:'block',marginBottom:6}}>Justificación *</label>
-        <textarea value={form.justificacion} onChange={e=>f('justificacion',e.target.value)} rows={2} placeholder="Ej: cliente volumen ancla, apertura mercado, strategic account..." style={{width:'100%',background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'vertical',outline:'none',boxSizing:'border-box'}}/>
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:10}}>
-          <FInput label="Categoría de excepción (opcional)" value={form.exception_category} onChange={v=>f('exception_category',v)} options={EXCEPTION_CATEGORIES}/>
-          <FInput label="Fecha de revisión obligatoria" value={form.review_date} onChange={v=>f('review_date',v)} type="date"/>
-        </div>
-      </div>}
-
-      {/* Approval panel */}
-      {canApproveDiscount && level !== PRICING_APPROVAL_LEVELS.NONE && <div style={{background:'#0D1B2A',border:'1px solid #1E3A5F',borderRadius:10,padding:14}}>
-        <div style={{fontSize:12,fontWeight:700,color:'#3B82F6',marginBottom:10}}>
-          🔐 Panel de aprobación — {approver?.name} ({approver?.role})
-        </div>
-        <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase',display:'block',marginBottom:6}}>Nota del aprobador</label>
-        <textarea value={form.approval_note} onChange={e=>f('approval_note',e.target.value)} rows={2} placeholder="Condiciones, límites o comentarios de la aprobación..." style={{width:'100%',background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'vertical',outline:'none',boxSizing:'border-box',marginBottom:10}}/>
-        <div style={{display:'flex',gap:10}}>
-          <button onClick={()=>handleSave('Aprobada')} disabled={saving||!form.justificacion} style={{flex:1,background:'#5CBB0022',border:'1px solid #5CBB00',color:'#5CBB00',borderRadius:8,padding:'9px 16px',fontSize:13,fontWeight:700,cursor:'pointer'}}>✅ Aprobar propuesta</button>
-          <button onClick={()=>handleSave('Rechazada')} disabled={saving} style={{flex:1,background:'#EF444422',border:'1px solid #EF4444',color:'#EF4444',borderRadius:8,padding:'9px 16px',fontSize:13,fontWeight:700,cursor:'pointer'}}>❌ Rechazar</button>
-        </div>
-      </div>}
-
-      <div style={{display:'flex',justifyContent:'flex-end',gap:10}}>
-        <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
-        <GreenBtn onClick={()=>handleSave()} disabled={saving||(level!==PRICING_APPROVAL_LEVELS.NONE&&!form.justificacion)}>
-          {saving?'Guardando...': level===PRICING_APPROVAL_LEVELS.NONE?'Confirmar tarifa pública →':'Guardar y enviar a aprobación →'}
-        </GreenBtn>
-      </div>
-    </div>}
-
-    {/* ── STEP 2: CONDITIONS & ONBOARDING ── */}
-    {step==='conditions' && <div style={{display:'flex',flexDirection:'column',gap:14}}>
-
-      {/* Summary */}
-      <div style={{background:'#1A1F2E',border:'1px solid #1E2535',borderRadius:10,padding:14,display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:10}}>
-        {[['País',lead?.country],['Zona',existing.zona||'—'],['Servicio',existing.servicio||'—'],['Tarifa',existing.tarifa_propuesta?`USD ${parseFloat(existing.tarifa_propuesta).toFixed(2)}`:'—']].map(([k,v])=><div key={k}>
-          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:3}}>{k}</div>
-          <div style={{fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{v}</div>
-        </div>)}
-      </div>
-
-      {/* Conditions note */}
-      <div>
-        <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase',display:'block',marginBottom:6}}>Condiciones propuestas al cliente</label>
-        <textarea value={form.conditions_note} onChange={e=>f('conditions_note',e.target.value)} rows={4} placeholder="Detallá modalidad, integración, facturación, SLA, cobertura, retornos, COD, condiciones especiales..." style={{width:'100%',background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'vertical',outline:'none',boxSizing:'border-box'}}/>
-      </div>
-
-      {/* Conditions approval panel — Tomás Cebrál */}
-      {canApproveConditions && !existing.conditions_approved && <div style={{background:'#0D1B2A',border:'1px solid #1E3A5F',borderRadius:10,padding:14}}>
-        <div style={{fontSize:12,fontWeight:700,color:'#3B82F6',marginBottom:4}}>🔐 Revisión final de condiciones — Tomás Cebrál (Regional)</div>
-        <div style={{fontSize:11,color:'#64748B',marginBottom:12}}>Una vez que das el ok aquí, se habilita el alta del cliente.</div>
-        <div style={{display:'flex',gap:10}}>
-          <button onClick={()=>handleSave('Condiciones aprobadas — T. Cebrál',{conditions_approved:true})} disabled={saving} style={{flex:1,background:'#5CBB0022',border:'1px solid #5CBB00',color:'#5CBB00',borderRadius:8,padding:'9px 16px',fontSize:13,fontWeight:700,cursor:'pointer'}}>✅ Dar ok a las condiciones</button>
-          <button onClick={()=>handleSave('Revisión de condiciones')} disabled={saving} style={{flex:1,background:'#EF444422',border:'1px solid #EF4444',color:'#EF4444',borderRadius:8,padding:'9px 16px',fontSize:13,fontWeight:700,cursor:'pointer'}}>↩ Pedir cambios</button>
-        </div>
-      </div>}
-
-      {/* Onboarding banner — shows when conditions approved */}
-      {existing.conditions_approved && <div style={{background:'#5CBB0015',border:'2px solid #5CBB00',borderRadius:10,padding:16,display:'flex',gap:12,alignItems:'flex-start'}}>
-        <div style={{fontSize:28,flexShrink:0}}>🚀</div>
-        <div>
-          <div style={{fontSize:14,fontWeight:700,color:'#5CBB00',marginBottom:4}}>Alta de cliente habilitada</div>
-          <div style={{fontSize:13,color:'#94A3B8',lineHeight:1.6}}>Avanzar con el <strong style={{color:'#F1F5F9'}}>alta del cliente en Tracking Local</strong>, carga de <strong style={{color:'#F1F5F9'}}>agreements</strong> y <strong style={{color:'#F1F5F9'}}>tarifas</strong>.</div>
-          {existing.updated_by && <div style={{fontSize:11,color:'#5CBB00',marginTop:6}}>✓ Aprobado por {existing.updated_by}</div>}
-        </div>
-      </div>}
-
-      <div style={{display:'flex',justifyContent:'flex-end',gap:10}}>
-        <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cerrar</button>
-        {!existing.conditions_approved && <GreenBtn onClick={()=>handleSave('Revisión de condiciones')} disabled={saving}>{saving?'Guardando...':'Guardar condiciones'}</GreenBtn>}
-      </div>
-    </div>}
-
-  </Modal>
-}
-
-// ── PRICING APPROVAL VIEW ────────────────────────────────
-function PricingApprovalsView({leads, isRegional, profile, onOpenPricing}) {
-  const proposals = leads.filter(l => l.pricing_proposal)
-  const pendingTomas = proposals.filter(l => l.pricing_proposal.approval_status === PRICING_STATUSES.PENDING_TOMAS)
-  const pendingPedro = proposals.filter(l => l.pricing_proposal.approval_status === PRICING_STATUSES.PENDING_PEDRO)
-  const pendingConditions = proposals.filter(l => l.pricing_proposal.approval_status === PRICING_STATUSES.CONDITIONS_REVIEW)
-  const approved = proposals.filter(l => l.pricing_proposal.approval_status === 'Aprobada' || l.pricing_proposal.conditions_approved)
-  const rejected = proposals.filter(l => l.pricing_proposal.approval_status === 'Rechazada')
-  const today = new Date().toISOString().split('T')[0]
-  const expiredReview = proposals.filter(l => l.pricing_proposal.review_date && l.pricing_proposal.review_date < today && l.pricing_proposal.approval_status === 'Aprobada')
-  const avgDiscount = proposals.length > 0 ? (proposals.reduce((s,l)=>s+(l.pricing_proposal.discount_pct||0),0)/proposals.length).toFixed(1) : 0
-  const pending = [...pendingTomas, ...pendingPedro, ...pendingConditions]
-
-  const ApproverCard = ({label, person, count, color}) => <div style={{background:'#141820',border:`1px solid ${color}44`,borderRadius:10,padding:14,flex:1,minWidth:140}}>
-    <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:.8,marginBottom:8}}>{label}</div>
-    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-      <div style={{width:30,height:30,borderRadius:'50%',background:color+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color,flexShrink:0}}>{person.name.split(' ').map(n=>n[0]).join('')}</div>
-      <div><div style={{fontSize:12,fontWeight:600,color:'#F1F5F9'}}>{person.name}</div><div style={{fontSize:10,color:'#64748B'}}>{person.role} · {person.range}</div></div>
-    </div>
-    <div style={{fontSize:22,fontWeight:700,color}}>{count}</div>
-  </div>
-
-  return <div style={{display:'flex',flexDirection:'column',gap:18}}>
-    <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-      <ApproverCard label="Pendientes T. Cebrál" person={APPROVERS.tomas} count={pendingTomas.length} color="#F59E0B"/>
-      <ApproverCard label="Pendientes P. Torello" person={APPROVERS.pedro} count={pendingPedro.length} color="#EF4444"/>
-      <StatCard label="Revisión condiciones" value={pendingConditions.length} icon="📋" color="#8B5CF6"/>
-      <StatCard label="Aprobadas" value={approved.length} icon="✅" color="#5CBB00"/>
-      <StatCard label="Avg descuento" value={`${avgDiscount}%`} icon="📊" color="#64748B"/>
-    </div>
-
-    {expiredReview.length > 0 && <div style={{background:'#EF444415',border:'1px solid #EF444433',borderRadius:10,padding:'12px 16px'}}>
-      <div style={{fontSize:12,fontWeight:700,color:'#EF4444',marginBottom:6}}>⚠️ {expiredReview.length} excepción(es) con fecha de revisión vencida</div>
-      {expiredReview.map(l=><div key={l.id} style={{fontSize:12,color:'#F87171'}}>• {l.empresa} ({l.country}) — revisión: {l.pricing_proposal.review_date}</div>)}
-    </div>}
-
-    {pending.length > 0 && <div>
-      <div style={{fontSize:11,fontWeight:700,color:'#94A3B8',textTransform:'uppercase',letterSpacing:1,marginBottom:10}}>Pendientes de aprobación</div>
-      {pending.map(l => {
-        const p = l.pricing_proposal
-        const isConditions = p.approval_status === PRICING_STATUSES.CONDITIONS_REVIEW
-        const isPedro = p.approval_status === PRICING_STATUSES.PENDING_PEDRO
-        const color = isConditions ? '#8B5CF6' : isPedro ? '#EF4444' : '#F59E0B'
-        const approverLabel = isConditions ? 'Condiciones → T. Cebrál' : isPedro ? 'P. Torello' : 'T. Cebrál'
-        return <div key={l.id} style={{background:'#1A1F2E',border:`1px solid ${color}44`,borderRadius:10,padding:'12px 16px',marginBottom:8,display:'flex',alignItems:'center',gap:14}}>
-          <div style={{flex:1}}>
-            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
-              <span style={{fontSize:13,fontWeight:700,color:'#F1F5F9'}}>{l.empresa}</span>
-              <Badge text={l.country} color="#64748B"/>
-              {p.zona && <Badge text={p.zona} color="#475569"/>}
-              {p.servicio && <Badge text={p.servicio} color="#475569"/>}
-              <Badge text={`${(p.discount_pct||0).toFixed(1)}% desc.`} color={color}/>
-              <Badge text={approverLabel} color={color}/>
-            </div>
-            <div style={{fontSize:11,color:'#64748B'}}>
-              Tarifa base: USD {p.tarifa_base} → propuesta: USD {p.tarifa_propuesta}
-              {p.justificacion && <span style={{marginLeft:8,color:'#94A3B8'}}>· {p.justificacion.substring(0,60)}{p.justificacion.length>60?'...':''}</span>}
-            </div>
-          </div>
-          {isRegional && <GreenBtn small onClick={()=>onOpenPricing(l)}>Revisar →</GreenBtn>}
-        </div>
-      })}
-    </div>}
-
-    <Card style={{padding:0,overflow:'hidden'}}>
-      <div style={{padding:'12px 16px',borderBottom:'1px solid #1E2535'}}>
-        <span style={{fontSize:12,fontWeight:600,color:'#94A3B8'}}>Todas las propuestas</span>
-      </div>
-      <div style={{overflowX:'auto'}}>
-        <table style={{width:'100%',borderCollapse:'collapse'}}>
-          <thead><tr style={{borderBottom:'1px solid #1E2535'}}>
-            {['País','Empresa','Zona','Servicio','Desc. %','Aprobador','Estado','Revisión',''].map(h=>(
-              <th key={h} style={{padding:'10px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',textAlign:'left',background:'#0F1117'}}>{h}</th>
-            ))}
-          </tr></thead>
-          <tbody>
-            {proposals.length === 0
-              ? <tr><td colSpan={9} style={{padding:30,textAlign:'center',color:'#475569'}}>No hay propuestas registradas</td></tr>
-              : proposals.map(l => {
-                  const p = l.pricing_proposal
-                  const isExpired = p.review_date && p.review_date < today
-                  return <tr key={l.id} style={{borderBottom:'1px solid #1E253550'}}>
-                    <td style={{padding:'9px 12px',fontSize:11,color:'#94A3B8'}}>{l.country}</td>
-                    <td style={{padding:'9px 12px',fontSize:13,fontWeight:600,color:'#F1F5F9'}}>{l.empresa}</td>
-                    <td style={{padding:'9px 12px',fontSize:11,color:'#64748B'}}>{p.zona||'—'}</td>
-                    <td style={{padding:'9px 12px',fontSize:11,color:'#64748B'}}>{p.servicio||'—'}</td>
-                    <td style={{padding:'9px 12px'}}><Badge text={`${(p.discount_pct||0).toFixed(1)}%`} color={p.discount_pct>15?'#EF4444':p.discount_pct>0?'#F59E0B':'#5CBB00'}/></td>
-                    <td style={{padding:'9px 12px',fontSize:11,color:'#94A3B8'}}>{p.discount_pct>15?'P. Torello':p.discount_pct>0?'T. Cebrál':'Automático'}</td>
-                    <td style={{padding:'9px 12px'}}><Badge text={p.approval_status||'—'} color={PRICING_STATUS_COLORS[p.approval_status]||'#64748B'}/></td>
-                    <td style={{padding:'9px 12px',fontSize:11,color:isExpired?'#EF4444':'#64748B'}}>{p.review_date||'—'}{isExpired&&' ⚠️'}</td>
-                    <td style={{padding:'9px 12px'}}><MiniBtn onClick={()=>onOpenPricing(l)} color="#3B82F6">Ver →</MiniBtn></td>
-                  </tr>
-                })
-            }
-          </tbody>
-        </table>
-      </div>
-    </Card>
-  </div>
-}
-
 // ── LEAD MODAL (full) ─────────────────────────────────────
 function LeadModal({lead,onClose,onSave,defaultCountry}){
   const[form,setForm]=useState(lead||{country:defaultCountry||'',empresa:'',contacto:'',puesto:'',email:'',phone:'',status:'Primer Contacto',tier:'Tier 3',volumen:'',revenue:'',margen:'',tarifa:'',expected_close:'',progress_to_won:10,last_interaction:'',next_step:'',comments:'',loss_reason:''})
@@ -1019,6 +601,82 @@ function AccountFichaModal({account,onClose,profile}){
   </Modal>
 }
 
+// ── BULK PERU MODAL ───────────────────────────────────────
+function BulkPeruModal({onClose,onImport}){
+  const[step,setStep]=useState('preview')
+  const[progress,setProgress]=useState(0)
+  async function handleImport(){
+    setStep('importing')
+    const batchSize=20;let done=0
+    for(let i=0;i<PERU_LEADS_DATA.length;i+=batchSize){
+      const batch=PERU_LEADS_DATA.slice(i,i+batchSize).map(r=>({
+        ...r,
+        country:'Perú',
+        status:'Primer Contacto',
+        tier:'Tier 3',
+        volumen:0,revenue:0,margen:0,tarifa:0,
+        progress_to_won:10,
+        created_at:new Date().toISOString()
+      }))
+      await onImport(batch)
+      done+=Math.min(batchSize,PERU_LEADS_DATA.length-i)
+      setProgress(Math.round((done/PERU_LEADS_DATA.length)*100))
+    }
+    setStep('done')
+  }
+  return <Modal title="🇵🇪 Carga masiva — Leads Perú (Ronald Farfán)" onClose={onClose} wide subtitle={`${PERU_LEADS_DATA.length} leads listos para importar · País: Perú · Status: Primer Contacto`}>
+    {step==='preview'&&<div>
+      <div style={{display:'flex',gap:12,marginBottom:20,flexWrap:'wrap'}}>
+        <div style={{background:'#5CBB0015',border:'1px solid #5CBB0033',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
+          <div style={{fontSize:32,fontWeight:700,color:'#5CBB00'}}>{PERU_LEADS_DATA.length}</div>
+          <div style={{fontSize:11,color:'#64748B'}}>leads a importar</div>
+        </div>
+        <div style={{background:'#3B82F615',border:'1px solid #3B82F633',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
+          <div style={{fontSize:32,fontWeight:700,color:'#3B82F6'}}>Perú</div>
+          <div style={{fontSize:11,color:'#64748B'}}>país destino</div>
+        </div>
+        <div style={{background:'#F59E0B15',border:'1px solid #F59E0B33',borderRadius:10,padding:'12px 18px',textAlign:'center'}}>
+          <div style={{fontSize:20,fontWeight:700,color:'#F59E0B'}}>Primer Contacto</div>
+          <div style={{fontSize:11,color:'#64748B'}}>status inicial</div>
+        </div>
+      </div>
+      <div style={{background:'#1A1F2E',border:'1px solid #1E2535',borderRadius:10,overflow:'hidden',marginBottom:20}}>
+        <div style={{padding:'10px 14px',borderBottom:'1px solid #1E2535',display:'grid',gridTemplateColumns:'2fr 1.5fr 2fr',gap:8}}>
+          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:1}}>Empresa</div>
+          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:1}}>Contacto</div>
+          <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',letterSpacing:1}}>Email</div>
+        </div>
+        <div style={{maxHeight:280,overflowY:'auto'}}>
+          {PERU_LEADS_DATA.map((r,i)=><div key={i} style={{padding:'8px 14px',borderBottom:'1px solid #1E253530',display:'grid',gridTemplateColumns:'2fr 1.5fr 2fr',gap:8,background:i%2===0?'transparent':'#0F111750'}}>
+            <div style={{fontSize:12,color:'#F1F5F9',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.empresa}</div>
+            <div style={{fontSize:12,color:'#94A3B8',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.contacto||'—'}</div>
+            <div style={{fontSize:11,color:'#64748B',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.email||'—'}</div>
+          </div>)}
+        </div>
+      </div>
+      <div style={{background:'#F59E0B15',border:'1px solid #F59E0B33',borderRadius:8,padding:'10px 14px',marginBottom:20,fontSize:12,color:'#F59E0B'}}>
+        ⚠️ Esta acción va a crear {PERU_LEADS_DATA.length} nuevos leads. Asegurate de no haber importado este archivo antes para evitar duplicados.
+      </div>
+      <div style={{display:'flex',justifyContent:'space-between'}}>
+        <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
+        <GreenBtn onClick={handleImport}>🚀 Importar {PERU_LEADS_DATA.length} leads →</GreenBtn>
+      </div>
+    </div>}
+    {step==='importing'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
+      <div style={{fontSize:36,marginBottom:16}}>⏳</div>
+      <div style={{height:8,background:'#1E2535',borderRadius:4,marginBottom:10}}>
+        <div style={{width:`${progress}%`,height:'100%',background:'linear-gradient(90deg,#5CBB00,#4CAF00)',borderRadius:4,transition:'width 0.3s'}}/>
+      </div>
+      <div style={{fontSize:13,color:'#64748B'}}>{progress}% — importando leads de Perú...</div>
+    </div>}
+    {step==='done'&&<div style={{textAlign:'center',padding:'40px 20px'}}>
+      <div style={{fontSize:48,marginBottom:16}}>✅</div>
+      <div style={{fontSize:18,fontWeight:700,color:'#5CBB00',marginBottom:8}}>{PERU_LEADS_DATA.length} leads de Perú importados</div>
+      <GreenBtn onClick={onClose}>Cerrar y ver leads</GreenBtn>
+    </div>}
+  </Modal>
+}
+
 // ── IMPORT MODAL ──────────────────────────────────────────
 function ImportModal({onClose,onImport,defaultCountry}){
   const[step,setStep]=useState('upload')
@@ -1113,39 +771,37 @@ function DashboardView({leads,accounts,prospects,activities}){
     return new Date(l.created_at||l.last_interaction)>=cutoff
   })
 
-  // ✅ FIX: todas las métricas excluyen Perdido
-  const flActive = fl.filter(l => l.status !== 'Perdido')
-  const activeLeads=flActive.filter(l=>l.status!=='Ganado')
-  const propuestasEnviadas=flActive.filter(l=>l.status==='Propuesta Enviada')
-  const propuestasGanadas=flActive.filter(l=>l.status==='Propuesta Ganada')
-  const ganados=flActive.filter(l=>l.status==='Ganado')
+  const activeLeads=fl.filter(l=>l.status!=='Ganado'&&l.status!=='Perdido')
+  const propuestasEnviadas=fl.filter(l=>l.status==='Propuesta Enviada')
+  const propuestasGanadas=fl.filter(l=>l.status==='Propuesta Ganada')
+  const ganados=fl.filter(l=>l.status==='Ganado')
   const perdidos=fl.filter(l=>l.status==='Perdido')
-
-  const conv=flActive.length>0?Math.round((ganados.length/flActive.length)*100):0
-  // ✅ FIX: revenue y volumen solo de activos (no perdidos)
-  const totalRevenue=flActive.reduce((s,l)=>s+(l.revenue||0),0)
-  const totalVolumen=flActive.reduce((s,l)=>s+(l.volumen||0),0)
+  const conv=fl.length>0?Math.round((ganados.length/fl.length)*100):0
+  const totalRevenue=fl.reduce((s,l)=>s+(l.revenue||0),0)
+  const totalVolumen=fl.filter(l=>l.status!=='Perdido').reduce((s,l)=>s+(l.volumen||0),0)
   const staleCount=leads.filter(l=>isStale(l,activities)).length
 
-  const byStage=PIPELINE_STAGES.filter(s=>s!=='Perdido').map(s=>({stage:s,count:flActive.filter(l=>l.status===s).length}))
-  const activeTotal=flActive.length
+  const byStage=PIPELINE_STAGES.filter(s=>s!=='Perdido').map(s=>({stage:s,count:fl.filter(l=>l.status===s).length}))
+  const activeTotal=fl.filter(l=>l.status!=='Perdido').length
 
+  const flSinPerdidos=fl.filter(l=>l.status!=='Perdido')
   const LATAM_TOTAL={
     country:'🌎 LATAM',
-    leads:flActive.length,
+    leads:flSinPerdidos.length,
     ganados:ganados.length,
-    revenue:flActive.reduce((a,l)=>a+(l.revenue||0),0),
-    volumen:flActive.reduce((a,l)=>a+(l.volumen||0),0)
+    revenue:flSinPerdidos.reduce((a,l)=>a+(l.revenue||0),0),
+    volumen:flSinPerdidos.reduce((a,l)=>a+(l.volumen||0),0)
   }
 
-  // ✅ FIX dashboard country: incluye Regional, excluye Perdido
-  const countriesConLeads=[...new Set(flActive.map(l=>l.country).filter(Boolean))].sort()
+  // ✅ FIX: incluye TODOS los países incluyendo "Regional"
+  // agrupa por country dinámicamente desde los leads reales (sin excluir ninguno)
+  const countriesConLeads=[...new Set(flSinPerdidos.map(l=>l.country).filter(Boolean))].sort()
   const byCountry=countriesConLeads.map(c=>({
     country:c,
-    leads:flActive.filter(l=>l.country===c).length,
-    ganados:flActive.filter(l=>l.country===c&&l.status==='Ganado').length,
-    revenue:flActive.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0),
-    volumen:flActive.filter(l=>l.country===c).reduce((a,l)=>a+(l.volumen||0),0)
+    leads:flSinPerdidos.filter(l=>l.country===c).length,
+    ganados:flSinPerdidos.filter(l=>l.country===c&&l.status==='Ganado').length,
+    revenue:flSinPerdidos.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0),
+    volumen:flSinPerdidos.filter(l=>l.country===c).reduce((a,l)=>a+(l.volumen||0),0)
   })).filter(c=>c.leads>0)
 
   const lossReasons=fl.filter(l=>l.status==='Perdido'&&l.loss_reason).reduce((acc,l)=>{acc[l.loss_reason]=(acc[l.loss_reason]||0)+1;return acc},{})
@@ -1164,9 +820,9 @@ function DashboardView({leads,accounts,prospects,activities}){
     </div>
 
     <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-      <StatCard label="Conversión (sin perdidos)" value={`${conv}%`} icon="📈" color="#F59E0B"/>
-      <StatCard label="Revenue Pipeline" value={fmtCur(totalRevenue)} icon="💰" color="#64748B" sub="Excluye perdidos"/>
-      <StatCard label="Volumen Total" value={fmtNum(totalVolumen)} icon="📦" color="#007B84" sub="envíos/mes · excluye perdidos"/>
+      <StatCard label="Conversión" value={`${conv}%`} icon="📈" color="#F59E0B"/>
+      <StatCard label="Revenue Pipeline" value={fmtCur(totalRevenue)} icon="💰" color="#64748B"/>
+      <StatCard label="Volumen Total" value={fmtNum(totalVolumen)} icon="📦" color="#007B84" sub="envíos/mes (sin perdidos)"/>
       <StatCard label="Cuentas Activas" value={accounts.filter(a=>a.status==='Activo').length} icon="🏢" color="#5CBB00"/>
     </div>
 
@@ -1182,11 +838,12 @@ function DashboardView({leads,accounts,prospects,activities}){
 
       <Card>
         <div style={{fontSize:12,fontWeight:600,color:'#94A3B8',marginBottom:14}}>
-          Performance por País <span style={{fontSize:10,color:'#475569',fontWeight:400}}>(excluye perdidos)</span>
+          Performance por País <span style={{fontSize:10,color:'#475569',fontWeight:400}}>(sin perdidos)</span>
         </div>
         <div style={{fontSize:10,display:'grid',gridTemplateColumns:'1fr 36px 50px 72px 70px',color:'#475569',textTransform:'uppercase',paddingBottom:6,borderBottom:'1px solid #1E2535',marginBottom:4}}>
           <div>País</div><div>Leads</div><div>Ganados</div><div>Revenue</div><div>Envíos</div>
         </div>
+        {/* LATAM acumulado */}
         <div style={{display:'grid',gridTemplateColumns:'1fr 36px 50px 72px 70px',fontSize:12,padding:'6px 0 6px 6px',borderBottom:'2px solid #2D3748',marginBottom:4,background:'#1A1F2E',borderRadius:6}}>
           <div style={{color:'#F1F5F9',fontWeight:700}}>{LATAM_TOTAL.country}</div>
           <div style={{color:'#3B82F6',fontWeight:700}}>{LATAM_TOTAL.leads}</div>
@@ -1194,8 +851,9 @@ function DashboardView({leads,accounts,prospects,activities}){
           <div style={{color:'#8B5CF6',fontWeight:700,fontSize:10}}>{fmtCur(LATAM_TOTAL.revenue)}</div>
           <div style={{color:'#007B84',fontWeight:700,fontSize:10}}>{fmtNum(LATAM_TOTAL.volumen)}</div>
         </div>
+        {/* Detalle por país — ahora incluye Regional si tiene leads */}
         {byCountry.map(c=><div key={c.country} style={{display:'grid',gridTemplateColumns:'1fr 36px 50px 72px 70px',fontSize:12,padding:'5px 0 5px 6px',borderBottom:'1px solid #1E253540'}}>
-          <div style={{color:c.country==='Regional'?'#8B5CF6':'#94A3B8',fontWeight:c.country==='Regional'?600:400}}>{c.country==='Regional'?'🌐 Regional':c.country}</div>
+          <div style={{color: c.country==='Regional'?'#8B5CF6':'#94A3B8',fontWeight: c.country==='Regional'?600:400}}>{c.country==='Regional'?'🌐 Regional':c.country}</div>
           <div style={{color:'#3B82F6',fontWeight:600}}>{c.leads}</div>
           <div style={{color:'#5CBB00',fontWeight:600}}>{c.ganados}</div>
           <div style={{color:'#8B5CF6',fontWeight:600,fontSize:10}}>{fmtCur(c.revenue)}</div>
@@ -1231,13 +889,10 @@ function PipelineView({leads,activities,onMoveStage,onSelect,onConfirmLoss}){
         <div style={{flex:1,background:'#141820',border:'1px solid #1E2535',borderTop:'none',borderRadius:'0 0 8px 8px',padding:6,overflowY:'auto',display:'flex',flexDirection:'column',gap:6}}>
           {sl.map(lead=>{
             const stale=isStale(lead,activities)
-            const hasPricing=!!lead.pricing_proposal
-            const pricingPending=hasPricing&&(lead.pricing_proposal.approval_status==='Pendiente aprobación regional'||lead.pricing_proposal.approval_status==='Pendiente aprobación Dirección')
-            return <div key={lead.id} onClick={()=>onSelect(lead)} style={{background:'#1A1F2E',border:`1px solid ${pricingPending?'#F9731666':stale?'#EF444466':'#2D3748'}`,borderRadius:8,padding:'9px 10px',cursor:'pointer'}}>
-              <div style={{fontSize:12,fontWeight:600,color:'#F1F5F9',marginBottom:2}}>{lead.empresa}{stale&&<StaleWarning/>}{pricingPending&&<span title="Propuesta pendiente aprobación" style={{fontSize:12,marginLeft:4}}>🟠</span>}</div>
+            return <div key={lead.id} onClick={()=>onSelect(lead)} style={{background:'#1A1F2E',border:`1px solid ${stale?'#EF444466':'#2D3748'}`,borderRadius:8,padding:'9px 10px',cursor:'pointer'}}>
+              <div style={{fontSize:12,fontWeight:600,color:'#F1F5F9',marginBottom:2}}>{lead.empresa}{stale&&<StaleWarning/>}</div>
               <div style={{fontSize:10,color:'#64748B',marginBottom:6}}>{lead.country} · {lead.tier}</div>
               {lead.volumen>0&&<div style={{fontSize:10,color:'#5CBB00',marginBottom:6}}>📦 {fmtNum(lead.volumen)}/mes</div>}
-              {hasPricing&&<div style={{fontSize:10,marginBottom:4}}><Badge text={lead.pricing_proposal.approval_status} color={PRICING_STATUS_COLORS[lead.pricing_proposal.approval_status]||'#64748B'}/></div>}
               <div style={{height:3,background:'#2D3748',borderRadius:2,overflow:'hidden',marginBottom:6}}>
                 <div style={{width:`${lead.progress_to_won||0}%`,height:'100%',background:progressColor(lead.progress_to_won||0)}}/>
               </div>
@@ -1255,7 +910,7 @@ function PipelineView({leads,activities,onMoveStage,onSelect,onConfirmLoss}){
 }
 
 // ── LEADS VIEW ────────────────────────────────────────────
-function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,onConfirmLoss,onDelete,onViewDetail,onPricing}){
+function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,onConfirmLoss,onDelete,onViewDetail}){
   const[filter,setFilter]=useState('')
   const[stageFilter,setStageFilter]=useState('Todos')
   const[staleOnly,setStaleOnly]=useState(false)
@@ -1301,20 +956,17 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
                   {label}<SortIcon col={col}/>
                 </th>
               ))}
-              <th style={{padding:'11px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',background:'#0F1117'}}>Propuesta</th>
               <th style={{padding:'11px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',background:'#0F1117'}}>Acciones</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length===0
-              ?<tr><td colSpan={11} style={{padding:40,textAlign:'center',color:'#475569'}}>No hay leads que coincidan</td></tr>
+              ?<tr><td colSpan={10} style={{padding:40,textAlign:'center',color:'#475569'}}>No hay leads que coincidan</td></tr>
               :filtered.map(lead=>{
                 const stale=isStale(lead,activities)
                 const actCount=activities.filter(a=>a.lead_id===lead.id).length
                 const hasAccount=accounts.find(a=>a.lead_id===lead.id)
-                const pricing=lead.pricing_proposal
-                const pricingPending=pricing&&(pricing.approval_status==='Pendiente aprobación regional'||pricing.approval_status==='Pendiente aprobación Dirección')
-                return <tr key={lead.id} style={{borderBottom:'1px solid #1E253550',background:pricingPending?'#F9731608':'transparent'}}>
+                return <tr key={lead.id} style={{borderBottom:'1px solid #1E253550'}}>
                   <td style={{padding:'10px 12px',fontSize:11,color:'#94A3B8'}}>{lead.country}</td>
                   <td style={{padding:'10px 12px',fontSize:13,fontWeight:600,color:'#F1F5F9',whiteSpace:'nowrap',cursor:'pointer'}} onClick={()=>onViewDetail(lead)}>{lead.empresa}{stale&&<StaleWarning/>}</td>
                   <td style={{padding:'10px 12px',fontSize:12,color:'#CBD5E1'}}>{lead.contacto||'—'}</td>
@@ -1329,21 +981,10 @@ function LeadsView({leads,activities,accounts,onEdit,onActivity,onBPM,onConvert,
                     </div>
                   </td>
                   <td style={{padding:'10px 12px',fontSize:11,color:stale?'#EF4444':'#64748B'}}>{lead.last_interaction||'—'}</td>
-                  {/* Pricing column */}
                   <td style={{padding:'10px 12px'}}>
-                    {pricing
-                      ? <div style={{display:'flex',flexDirection:'column',gap:3}}>
-                          <Badge text={`${(pricing.discount_pct||0).toFixed(1)}% desc.`} color={pricing.discount_pct>15?'#EF4444':pricing.discount_pct>5?'#F97316':pricing.discount_pct>0?'#F59E0B':'#5CBB00'}/>
-                          <Badge text={pricing.approval_status} color={PRICING_STATUS_COLORS[pricing.approval_status]||'#64748B'}/>
-                        </div>
-                      : <span style={{fontSize:11,color:'#475569'}}>—</span>
-                    }
-                  </td>
-                  <td style={{padding:'10px 12px'}}>
-                    <div style={{display:'flex',gap:3,flexWrap:'wrap'}}>
+                    <div style={{display:'flex',gap:3}}>
                       <MiniBtn onClick={()=>onEdit(lead)} color="#3B82F6">✎</MiniBtn>
                       <MiniBtn onClick={()=>onActivity(lead)} color="#F59E0B">+{actCount>0?actCount:''}</MiniBtn>
-                      <MiniBtn onClick={()=>onPricing(lead)} color="#F97316">💲</MiniBtn>
                       {lead.status==='Ganado'&&<MiniBtn onClick={()=>onBPM(lead)} color="#5CBB00">BPM</MiniBtn>}
                       {lead.status==='Ganado'&&!hasAccount&&<MiniBtn onClick={()=>onConvert(lead)} color="#5CBB00">→Cta</MiniBtn>}
                       {lead.status!=='Perdido'&&lead.status!=='Ganado'&&<MiniBtn onClick={()=>onConfirmLoss(lead)} color="#EF4444">Perdido</MiniBtn>}
@@ -1564,26 +1205,25 @@ function ProductsView({products,isRegional,canEdit,userCountry,onSave,onDelete})
 function ReportsView({leads,accounts}){
   const ganados=leads.filter(l=>l.status==='Ganado').length
   const perdidos=leads.filter(l=>l.status==='Perdido').length
-  const activos=leads.filter(l=>l.status!=='Perdido')
-  const conv=activos.length>0?((ganados/activos.length)*100).toFixed(1):0
-  const totalRev=activos.reduce((s,l)=>s+(l.revenue||0),0)
-  const byCountry=COUNTRIES.map(c=>({country:c,leads:leads.filter(l=>l.country===c&&l.status!=='Perdido').length,ganados:leads.filter(l=>l.country===c&&l.status==='Ganado').length,perdidos:leads.filter(l=>l.country===c&&l.status==='Perdido').length,revenue:leads.filter(l=>l.country===c&&l.status!=='Perdido').reduce((a,l)=>a+(l.revenue||0),0),volumen:leads.filter(l=>l.country===c&&l.status!=='Perdido').reduce((a,l)=>a+(l.volumen||0),0)})).filter(c=>c.leads>0||c.perdidos>0)
+  const conv=leads.length>0?((ganados/leads.length)*100).toFixed(1):0
+  const totalRev=leads.reduce((s,l)=>s+(l.revenue||0),0)
+  const byCountry=COUNTRIES.map(c=>({country:c,leads:leads.filter(l=>l.country===c).length,ganados:leads.filter(l=>l.country===c&&l.status==='Ganado').length,perdidos:leads.filter(l=>l.country===c&&l.status==='Perdido').length,revenue:leads.filter(l=>l.country===c).reduce((a,l)=>a+(l.revenue||0),0),volumen:leads.filter(l=>l.country===c&&l.status!=='Perdido').reduce((a,l)=>a+(l.volumen||0),0)})).filter(c=>c.leads>0)
   return <div style={{display:'flex',flexDirection:'column',gap:16}}>
     <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-      <StatCard label="Leads Activos" value={activos.length} icon="🎯" color="#3B82F6"/>
+      <StatCard label="Total Leads" value={leads.length} icon="🎯" color="#3B82F6"/>
       <StatCard label="Ganados" value={ganados} icon="🏆" color="#5CBB00"/>
       <StatCard label="Perdidos" value={perdidos} icon="❌" color="#EF4444"/>
-      <StatCard label="Conversión" value={`${conv}%`} icon="📈" color="#F59E0B" sub="Sobre activos"/>
-      <StatCard label="Revenue" value={fmtCur(totalRev)} icon="💰" color="#64748B" sub="Excluye perdidos"/>
+      <StatCard label="Conversión" value={`${conv}%`} icon="📈" color="#F59E0B"/>
+      <StatCard label="Revenue" value={fmtCur(totalRev)} icon="💰" color="#64748B"/>
     </div>
     <div style={{display:'flex',justifyContent:'flex-end'}}>
       <button onClick={()=>exportToCSV(byCountry,'reporte-paises.csv')} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#64748B',fontSize:12,cursor:'pointer'}}>↓ Exportar CSV</button>
     </div>
     <Card>
-      <div style={{fontSize:13,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Consolidado por País <span style={{fontSize:10,fontWeight:400,color:'#475569'}}>(revenue y volumen excluyen perdidos)</span></div>
+      <div style={{fontSize:13,fontWeight:600,color:'#94A3B8',marginBottom:14}}>Consolidado por País</div>
       <table style={{width:'100%',borderCollapse:'collapse'}}>
         <thead><tr style={{borderBottom:'1px solid #1E2535'}}>
-          {['País','Leads activos','Ganados','Perdidos','% Conv.','Revenue','Volumen Activo'].map(h=><th key={h} style={{padding:'10px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',textAlign:'left'}}>{h}</th>)}
+          {['País','Leads','Ganados','Perdidos','% Conv.','Revenue','Volumen Activo'].map(h=><th key={h} style={{padding:'10px 12px',fontSize:10,color:'#64748B',textTransform:'uppercase',textAlign:'left'}}>{h}</th>)}
         </tr></thead>
         <tbody>
           {byCountry.map((c,i)=>{
@@ -1720,212 +1360,7 @@ function DailyAlertModal({activities,leads,onClose,onGo}){
 }
 
 // ── MAIN APP ──────────────────────────────────────────────
-// ── CLIENT TARIFFS MODAL ──────────────────────────────────
-function ClientTariffModal({tariff, onClose, onSave}){
-  const[form,setForm]=useState(tariff||{
-    cliente:'', country:'', zona:'', servicio:'', tarifa_usd:'', cod:false,
-    descuento_pct:'', tarifa_negociada:'', volumen_est:'', vigencia_desde:'',
-    vigencia_hasta:'', aprobado_por:'', condiciones:'', estado:'Activa'
-  })
-  const[saving,setSaving]=useState(false)
-  const f=(k,v)=>{
-    const next={...form,[k]:v}
-    if(k==='country'){next.zona='';next.tarifa_usd='';next.tarifa_negociada=''}
-    if(k==='zona'||k==='servicio'){
-      const cd=BASE_TARIFFS[next.country]
-      if(cd&&cd.tariffs[next.zona]){
-        const base=cd.tariffs[next.zona][next.servicio||form.servicio]
-        if(base){next.tarifa_usd=base.toString();if(!next.descuento_pct||next.descuento_pct==='0')next.tarifa_negociada=base.toString()}
-      }
-    }
-    if(k==='descuento_pct'){
-      const base=parseFloat(next.tarifa_usd)||0
-      const disc=parseFloat(v)||0
-      if(base>0)next.tarifa_negociada=(base*(1-disc/100)).toFixed(2)
-    }
-    if(k==='tarifa_negociada'){
-      const base=parseFloat(next.tarifa_usd)||0
-      const prop=parseFloat(v)||0
-      if(base>0)next.descuento_pct=Math.max(0,((base-prop)/base*100)).toFixed(1)
-    }
-    setForm(next)
-  }
-  const cd=BASE_TARIFFS[form.country]||null
-  const zones=cd?cd.zones:[]
-  const discPct=parseFloat(form.discuento_pct)||0
-
-  return <Modal title={tariff?`Editar tarifa — ${tariff.cliente}`:'Nueva tarifa de cliente'} onClose={onClose} wide>
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
-      <FInput label="Cliente" value={form.cliente} onChange={v=>f('cliente',v)} required/>
-      <FInput label="País" value={form.country} onChange={v=>f('country',v)} options={Object.keys(BASE_TARIFFS)} required/>
-      <FInput label="Estado" value={form.estado} onChange={v=>f('estado',v)} options={['Activa','Vencida','En revisión']}/>
-    </div>
-
-    {cd&&<div style={{margin:'12px 0',background:'#1A1F2E',border:'1px solid #1E2D42',borderRadius:10,padding:14}}>
-      <div style={{fontSize:11,fontWeight:600,color:'#94A3B8',textTransform:'uppercase',letterSpacing:.5,marginBottom:10}}>Selección de servicio</div>
-      <div style={{display:'flex',gap:8,marginBottom:10,flexWrap:'wrap'}}>
-        {zones.map(z=><button key={z} onClick={()=>f('zona',z)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${form.zona===z?'#5CBB00':'#2D3748'}`,background:form.zona===z?'#5CBB0022':'transparent',color:form.zona===z?'#5CBB00':'#64748B',fontSize:12,cursor:'pointer',fontWeight:form.zona===z?600:400}}>{z}</button>)}
-      </div>
-      {form.zona&&<div style={{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}>
-        {SERVICES.map(svc=>{
-          const price=cd.tariffs[form.zona]?.[svc]
-          return <button key={svc} onClick={()=>price&&f('servicio',svc)} style={{padding:'5px 14px',borderRadius:20,border:`1px solid ${form.servicio===svc?'#5CBB00':price?'#2D3748':'#1E2535'}`,background:form.servicio===svc?'#5CBB0022':'transparent',color:form.servicio===svc?'#5CBB00':price?'#94A3B8':'#3D4A5C',fontSize:12,cursor:price?'pointer':'not-allowed',fontWeight:form.servicio===svc?600:400}}>
-            {svc} {price?`· USD ${price.toFixed(2)}`:'· N/D'}
-          </button>
-        })}
-      </div>}
-      {cd.cod&&<label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:12,color:'#94A3B8'}}>
-        <input type="checkbox" checked={form.cod||false} onChange={e=>f('cod',e.target.checked)} style={{width:15,height:15}}/>
-        COD (Cash on Delivery)
-        {form.cod&&<Badge text="Activo" color="#5CBB00"/>}
-      </label>}
-      {!cd.cod&&<div style={{fontSize:11,color:'#64748B'}}>⚠ COD no disponible en {form.country}</div>}
-    </div>}
-
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,marginBottom:12}}>
-      <div style={{background:'#1A1F2E',borderRadius:8,padding:'10px 12px'}}>
-        <div style={{fontSize:10,color:'#64748B',textTransform:'uppercase',marginBottom:3}}>Tarifa base (USD)</div>
-        <div style={{fontSize:16,fontWeight:700,color:'#5CBB00'}}>{form.tarifa_usd?`USD ${parseFloat(form.tarifa_usd).toFixed(2)}`:'—'}</div>
-      </div>
-      <FInput label="Descuento %" value={form.descuento_pct} onChange={v=>f('descuento_pct',v)} type="number"/>
-      <FInput label="Tarifa negociada (USD)" value={form.tarifa_negociada} onChange={v=>f('tarifa_negociada',v)} type="number"/>
-    </div>
-
-    {form.tarifa_usd&&form.tarifa_negociada&&<div style={{marginBottom:12,padding:'10px 14px',background:'#1A1F2E',border:`1px solid ${parseFloat(form.descuento_pct)>15?'#EF444444':parseFloat(form.descuento_pct)>0?'#F59E0B44':'#5CBB0044'}`,borderRadius:8,display:'flex',alignItems:'center',gap:10}}>
-      <span style={{fontSize:20}}>{parseFloat(form.descuento_pct)>15?'🔴':parseFloat(form.descuento_pct)>0?'🟡':'✅'}</span>
-      <div>
-        <span style={{fontSize:14,fontWeight:700,color:parseFloat(form.descuento_pct)>15?'#EF4444':parseFloat(form.descuento_pct)>0?'#F59E0B':'#5CBB00'}}>{parseFloat(form.descuento_pct||0).toFixed(1)}% descuento</span>
-        <span style={{fontSize:11,color:'#64748B',marginLeft:8}}>{parseFloat(form.descuento_pct)>15?'Aprobado por Pedro Torello':parseFloat(form.descuento_pct)>0?'Aprobado por Tomás Cebrál':'Tarifa pública'}</span>
-      </div>
-    </div>}
-
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,marginBottom:12}}>
-      <FInput label="Volumen estimado (envíos/mes)" value={form.volumen_est} onChange={v=>f('volumen_est',v)} type="number"/>
-      <FInput label="Vigencia desde" value={form.vigencia_desde} onChange={v=>f('vigencia_desde',v)} type="date"/>
-      <FInput label="Vigencia hasta" value={form.vigencia_hasta} onChange={v=>f('vigencia_hasta',v)} type="date"/>
-    </div>
-    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
-      <FInput label="Aprobado por" value={form.aprobado_por} onChange={v=>f('aprobado_por',v)} options={['Tomás Cebrál','Pedro Torello','Automático (tarifa pública)']}/>
-      <FInput label="Estado" value={form.estado} onChange={v=>f('estado',v)} options={['Activa','Vencida','En revisión']}/>
-    </div>
-    <div style={{marginBottom:16}}>
-      <label style={{fontSize:11,color:'#94A3B8',textTransform:'uppercase',display:'block',marginBottom:6}}>Condiciones / observaciones</label>
-      <textarea value={form.condiciones||''} onChange={e=>f('condiciones',e.target.value)} rows={2} placeholder="Modalidad, integración, facturación, SLA, retornos..." style={{width:'100%',background:'#1E2535',border:'1px solid #2D3748',color:'#E2E8F0',borderRadius:8,padding:'8px 10px',fontSize:13,resize:'vertical',outline:'none',boxSizing:'border-box'}}/>
-    </div>
-    <div style={{display:'flex',justifyContent:'flex-end',gap:10}}>
-      <button onClick={onClose} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 16px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
-      <GreenBtn onClick={async()=>{if(!form.cliente||!form.country)return;setSaving(true);await onSave(form);setSaving(false)}} disabled={saving}>{saving?'Guardando...':'Guardar tarifa'}</GreenBtn>
-    </div>
-  </Modal>
-}
-
-// ── CLIENT TARIFFS VIEW ───────────────────────────────────
-function ClientTariffsView({tariffs, isRegional, onEdit, onDelete, onNew}){
-  const[filter,setFilter]=useState('')
-  const[countryFilter,setCountryFilterVal]=useState('Todos')
-  const[serviceFilter,setServiceFilter]=useState('Todos')
-  const[confirmDelete,setConfirmDelete]=useState(null)
-  const today=new Date().toISOString().split('T')[0]
-
-  const filtered=tariffs.filter(t=>{
-    if(countryFilter!=='Todos'&&t.country!==countryFilter)return false
-    if(serviceFilter!=='Todos'&&t.servicio!==serviceFilter)return false
-    if(filter&&!t.cliente?.toLowerCase().includes(filter.toLowerCase()))return false
-    return true
-  })
-
-  const byCountry=Object.keys(BASE_TARIFFS).map(c=>({country:c,count:tariffs.filter(t=>t.country===c&&t.estado==='Activa').length})).filter(c=>c.count>0)
-  const active=tariffs.filter(t=>t.estado==='Activa').length
-  const expiring=tariffs.filter(t=>t.vigencia_hasta&&t.vigencia_hasta<today&&t.estado==='Activa').length
-
-  return <div style={{display:'flex',flexDirection:'column',gap:14}}>
-    <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-      <StatCard label="Tarifas activas" value={active} icon="✅" color="#5CBB00"/>
-      {byCountry.map(c=><StatCard key={c.country} label={c.country} value={c.count} icon="📌" color="#3B82F6"/>)}
-      {expiring>0&&<StatCard label="Vigencia vencida" value={expiring} icon="⚠️" color="#EF4444"/>}
-    </div>
-
-    <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
-      <input placeholder="🔍 Buscar cliente..." value={filter} onChange={e=>setFilter(e.target.value)} style={{flex:1,minWidth:180,background:'#141820',border:'1px solid #1E2535',color:'#E2E8F0',borderRadius:8,padding:'8px 12px',fontSize:13,outline:'none'}}/>
-      <select value={countryFilter} onChange={e=>setCountryFilterVal(e.target.value)} style={{background:'#141820',border:'1px solid #1E2535',color:'#E2E8F0',borderRadius:8,padding:'8px 12px',fontSize:13,cursor:'pointer',outline:'none'}}>
-        <option value="Todos">Todos los países</option>
-        {Object.keys(BASE_TARIFFS).map(c=><option key={c} value={c}>{c}</option>)}
-      </select>
-      <select value={serviceFilter} onChange={e=>setServiceFilter(e.target.value)} style={{background:'#141820',border:'1px solid #1E2535',color:'#E2E8F0',borderRadius:8,padding:'8px 12px',fontSize:13,cursor:'pointer',outline:'none'}}>
-        <option value="Todos">Todos los servicios</option>
-        {SERVICES.map(s=><option key={s} value={s}>{s}</option>)}
-      </select>
-      <button onClick={()=>exportToCSV(filtered,'tarifas-clientes.csv')} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#64748B',fontSize:12,cursor:'pointer'}}>↓ Exportar CSV</button>
-    </div>
-
-    {Object.keys(BASE_TARIFFS).map(country=>{
-      const countryTariffs=filtered.filter(t=>t.country===country)
-      if(!countryTariffs.length)return null
-      return <div key={country}>
-        <div style={{fontSize:11,fontWeight:600,color:'#5CBB00',textTransform:'uppercase',letterSpacing:1,marginBottom:8,paddingLeft:4}}>{country}</div>
-        <Card style={{padding:0,overflow:'hidden',marginBottom:4}}>
-          <table style={{width:'100%',borderCollapse:'collapse',tableLayout:'fixed'}}>
-            <thead><tr style={{borderBottom:'1px solid #1E2535'}}>
-              {[['Cliente',22],['Zona',12],['Servicio',11],['Tarifa base',11],['Descuento',9],['Tarifa negociada',13],['COD',6],['Volumen',9],['Vigencia',11],['Estado',8],['',8]].map(([h,w])=>(
-                <th key={h} style={{padding:'9px 10px',fontSize:10,color:'#64748B',textTransform:'uppercase',textAlign:'left',background:'#0F1117',width:`${w}%`}}>{h}</th>
-              ))}
-            </tr></thead>
-            <tbody>
-              {countryTariffs.map(t=>{
-                const isExpired=t.vigencia_hasta&&t.vigencia_hasta<today
-                const disc=parseFloat(t.descuento_pct)||0
-                return <tr key={t.id} style={{borderBottom:'1px solid #1E253540',background:isExpired?'#EF444408':'transparent'}}>
-                  <td style={{padding:'9px 10px',fontSize:13,fontWeight:600,color:'#F1F5F9',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.cliente}</td>
-                  <td style={{padding:'9px 10px',fontSize:11,color:'#94A3B8'}}>{t.zona||'—'}</td>
-                  <td style={{padding:'9px 10px'}}><Badge text={t.servicio||'—'} color="#8B5CF6"/></td>
-                  <td style={{padding:'9px 10px',fontSize:11,color:'#64748B'}}>{t.tarifa_usd?`USD ${parseFloat(t.tarifa_usd).toFixed(2)}`:'—'}</td>
-                  <td style={{padding:'9px 10px'}}><Badge text={`${disc.toFixed(1)}%`} color={disc>15?'#EF4444':disc>0?'#F59E0B':'#5CBB00'}/></td>
-                  <td style={{padding:'9px 10px',fontSize:12,fontWeight:700,color:disc>15?'#EF4444':disc>0?'#F59E0B':'#5CBB00'}}>{t.tarifa_negociada?`USD ${parseFloat(t.tarifa_negociada).toFixed(2)}`:'—'}</td>
-                  <td style={{padding:'9px 10px',fontSize:12}}>{t.cod?'✅':'—'}</td>
-                  <td style={{padding:'9px 10px',fontSize:11,color:'#007B84'}}>{t.volumen_est?fmtNum(t.volumen_est):'—'}</td>
-                  <td style={{padding:'9px 10px',fontSize:10,color:isExpired?'#EF4444':'#64748B'}}>{t.vigencia_hasta||'—'}{isExpired&&' ⚠'}</td>
-                  <td style={{padding:'9px 10px'}}><Badge text={t.estado||'—'} color={t.estado==='Activa'?'#5CBB00':t.estado==='Vencida'?'#EF4444':'#F59E0B'}/></td>
-                  <td style={{padding:'9px 10px'}}>
-                    <div style={{display:'flex',gap:3}}>
-                      <MiniBtn onClick={()=>onEdit(t)} color="#3B82F6">✎</MiniBtn>
-                      {isRegional&&<MiniBtn onClick={()=>setConfirmDelete(t)} color="#64748B">🗑</MiniBtn>}
-                    </div>
-                  </td>
-                </tr>
-              })}
-            </tbody>
-          </table>
-        </Card>
-      </div>
-    })}
-
-    {filtered.length===0&&<EmptyState icon="🗂️" title="No hay tarifas registradas" sub="Creá la primera tarifa de cliente usando el botón + Nueva Tarifa"/>}
-
-    {confirmDelete&&<div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:2000}}>
-      <div style={{background:'#141820',border:'1px solid #EF444444',borderRadius:16,padding:28,width:380,textAlign:'center'}}>
-        <div style={{fontSize:32,marginBottom:12}}>🗑️</div>
-        <div style={{fontSize:16,fontWeight:700,color:'#F1F5F9',marginBottom:8}}>¿Eliminar tarifa?</div>
-        <div style={{fontSize:13,color:'#94A3B8',marginBottom:22}}>Tarifa de <strong style={{color:'#EF4444'}}>{confirmDelete.cliente}</strong> — {confirmDelete.country} / {confirmDelete.servicio}</div>
-        <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-          <button onClick={()=>setConfirmDelete(null)} style={{background:'#1E2535',border:'1px solid #2D3748',color:'#94A3B8',borderRadius:8,padding:'9px 20px',fontSize:13,cursor:'pointer'}}>Cancelar</button>
-          <button onClick={()=>{onDelete(confirmDelete);setConfirmDelete(null)}} style={{background:'#EF4444',color:'white',border:'none',borderRadius:8,padding:'9px 20px',fontSize:13,fontWeight:600,cursor:'pointer'}}>Eliminar</button>
-        </div>
-      </div>
-    </div>}
-  </div>
-}
-
-
-  {id:'pipeline',icon:'🔀',label:'Pipeline'},
-  {id:'leads',icon:'🎯',label:'Leads'},
-  {id:'prospects',icon:'🔍',label:'Prospectos'},
-  {id:'accounts',icon:'🏢',label:'Cuentas'},
-  {id:'activities',icon:'📋',label:'Actividades'},
-  {id:'pricing',icon:'💲',label:'Aprobaciones Pricing'},
-  {id:'client_tariffs',icon:'🗂️',label:'Tarifas de Clientes'},
-  {id:'products',icon:'📦',label:'Productos & Tarifas'},
-  {id:'reports',icon:'📈',label:'Reportes'}
-]
+const NAV=[{id:'dashboard',icon:'📊',label:'Dashboard'},{id:'pipeline',icon:'🔀',label:'Pipeline'},{id:'leads',icon:'🎯',label:'Leads'},{id:'prospects',icon:'🔍',label:'Prospectos'},{id:'accounts',icon:'🏢',label:'Cuentas'},{id:'activities',icon:'📋',label:'Actividades'},{id:'products',icon:'📦',label:'Productos & Tarifas'},{id:'reports',icon:'📈',label:'Reportes'}]
 
 function CRMApp(){
   const{profile,signOut,isRegional,userCountry}=useAuth()
@@ -1936,11 +1371,9 @@ function CRMApp(){
   const[accounts,setAccounts]=useState([])
   const[activities,setActivities]=useState([])
   const[products,setProducts]=useState([])
-  const[clientTariffs,setClientTariffs]=useState([])
-  const[editClientTariff,setEditClientTariff]=useState(null)
-  const[showClientTariffModal,setShowClientTariffModal]=useState(false)
   const[loading,setLoading]=useState(true)
   const[error,setError]=useState(null)
+  const[editLead,setEditLead]=useState(null)
   const[showLeadModal,setShowLeadModal]=useState(false)
   const[showQuickLead,setShowQuickLead]=useState(false)
   const[detailLead,setDetailLead]=useState(null)
@@ -1953,11 +1386,11 @@ function CRMApp(){
   const[lossLead,setLossLead]=useState(null)
   const[showImport,setShowImport]=useState(false)
   const[showImportProspects,setShowImportProspects]=useState(false)
+  const[showBulkPeru,setShowBulkPeru]=useState(false)
   const[sidebarCollapsed,setSidebarCollapsed]=useState(false)
   const[toast,setToast]=useState(null)
   const[showDailyAlert,setShowDailyAlert]=useState(false)
   const[dailyAlertDismissed,setDailyAlertDismissed]=useState(false)
-  const[pricingLead,setPricingLead]=useState(null)
 
   const showToast=(msg,type='success')=>{setToast({msg,type});setTimeout(()=>setToast(null),3500)}
 
@@ -1985,9 +1418,9 @@ function CRMApp(){
       let aQ=sb.from('accounts').select('*').order('created_at',{ascending:false})
       let prQ=sb.from('products').select('*').order('country')
       if(country){lQ=lQ.eq('country',country);pQ=pQ.eq('country',country);aQ=aQ.eq('country',country);prQ=prQ.eq('country',country)}
-      const[l,p,a,act,prod,ct]=await Promise.all([lQ,pQ,aQ,sb.from('activities').select('*').order('fecha',{ascending:false}),prQ,sb.from('client_tariffs').select('*').order('created_at',{ascending:false})])
+      const[l,p,a,act,prod]=await Promise.all([lQ,pQ,aQ,sb.from('activities').select('*').order('fecha',{ascending:false}),prQ])
       if(l.error)throw l.error
-      setLeads(l.data||[]);setProspects(p.data||[]);setAccounts(a.data||[]);setActivities(act.data||[]);setProducts(prod.data||[]);setClientTariffs(ct.data||[])
+      setLeads(l.data||[]);setProspects(p.data||[]);setAccounts(a.data||[]);setActivities(act.data||[]);setProducts(prod.data||[])
     }catch(e){setError('Error al cargar datos. Verificá tu conexión.')}
     setLoading(false)
   },[isRegional,userCountry])
@@ -2017,16 +1450,6 @@ function CRMApp(){
       showToast('Lead creado ✅')
     }
     setShowLeadModal(false);setShowQuickLead(false);setEditLead(null)
-  }
-
-  async function savePricingProposal(lead, pricingData) {
-    const{error}=await sb.from('leads').update(pricingData).eq('id',lead.id)
-    if(!error){
-      setLeads(prev=>prev.map(l=>l.id===lead.id?{...l,...pricingData}:l))
-      showToast('Propuesta guardada ✅')
-    } else {
-      showToast('Error al guardar propuesta','error')
-    }
   }
 
   async function moveLead(lead,newStatus){
@@ -2133,31 +1556,6 @@ function CRMApp(){
     await fetchAll()
   }
 
-  async function saveClientTariff(data){
-    const now=new Date().toISOString()
-    if(data.id){
-      const{error}=await sb.from('client_tariffs').update({...data,updated_at:now}).eq('id',data.id)
-      if(!error){setClientTariffs(prev=>prev.map(t=>t.id===data.id?{...data,updated_at:now}:t));showToast('Tarifa actualizada ✅')}
-      else showToast('Error al guardar tarifa','error')
-    }else{
-      const{data:nt,error}=await sb.from('client_tariffs').insert([{...data,created_at:now,updated_at:now,created_by:profile?.id}]).select().single()
-      if(!error){setClientTariffs(prev=>[nt,...prev]);showToast('Tarifa creada ✅')}
-      else showToast('Error al crear tarifa','error')
-    }
-    setShowClientTariffModal(false);setEditClientTariff(null)
-  }
-
-  async function deleteClientTariff(tariff){
-    const{error}=await sb.from('client_tariffs').delete().eq('id',tariff.id)
-    if(!error){setClientTariffs(prev=>prev.filter(t=>t.id!==tariff.id));showToast('Tarifa eliminada')}
-    else showToast('Error al eliminar','error')
-  } (for sidebar badge)
-  const pendingPricingCount = leads.filter(l =>
-    l.pricing_proposal &&
-    (l.pricing_proposal.approval_status === PRICING_STATUSES.PENDING_TOMAS ||
-     l.pricing_proposal.approval_status === PRICING_STATUSES.PENDING_PEDRO)
-  ).length
-
   const fLeads=countryFilter(leads)
   const fProspects=countryFilter(prospects)
   const fAccounts=countryFilter(accounts)
@@ -2180,8 +1578,7 @@ function CRMApp(){
       <nav style={{flex:1,padding:'6px',display:'flex',flexDirection:'column',gap:1,overflowY:'auto'}}>
         {NAV.map(item=><button key={item.id} onClick={()=>setView(item.id)} style={{display:'flex',alignItems:'center',gap:9,padding:'8px 8px',borderRadius:7,border:'none',cursor:'pointer',background:view===item.id?'rgba(92,187,0,0.12)':'transparent',color:view===item.id?'#5CBB00':'#94A3B8',fontSize:12,fontWeight:view===item.id?600:400,textAlign:'left',borderLeft:`2px solid ${view===item.id?'#5CBB00':'transparent'}`,whiteSpace:'nowrap'}}>
           <span style={{fontSize:14,flexShrink:0}}>{item.icon}</span>
-          {!sidebarCollapsed&&<span style={{flex:1}}>{item.label}</span>}
-          {!sidebarCollapsed&&item.id==='pricing'&&pendingPricingCount>0&&<span style={{background:'#F97316',color:'white',fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:20,flexShrink:0}}>{pendingPricingCount}</span>}
+          {!sidebarCollapsed&&<span>{item.label}</span>}
         </button>)}
       </nav>
       {!sidebarCollapsed&&<div style={{padding:10,borderTop:'1px solid #1E2535'}}>
@@ -2201,11 +1598,11 @@ function CRMApp(){
         <div style={{display:'flex',gap:8}}>
           {(view==='leads'||view==='pipeline')&&<>
             <button onClick={()=>setShowImport(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#94A3B8',fontSize:12,cursor:'pointer'}}>↑ Importar CSV</button>
+            <button onClick={()=>setShowBulkPeru(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #3B82F6',background:'#3B82F610',color:'#3B82F6',fontSize:12,cursor:'pointer',fontWeight:600}}>🇵🇪 Cargar Perú</button>
             <button onClick={()=>setShowQuickLead(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #89D44A',background:'transparent',color:'#89D44A',fontSize:12,cursor:'pointer',fontWeight:600}}>+ Rápido</button>
             <GreenBtn onClick={()=>{setEditLead(null);setShowLeadModal(true)}}>+ Nuevo Lead</GreenBtn>
           </>}
           {view==='prospects'&&<><button onClick={()=>setShowImportProspects(true)} style={{padding:'8px 14px',borderRadius:8,border:'1px solid #2D3748',background:'transparent',color:'#94A3B8',fontSize:12,cursor:'pointer'}}>↑ Importar CSV</button><GreenBtn onClick={()=>{setEditProspect(null);setShowProspectModal(true)}}>+ Nuevo Prospecto</GreenBtn></>}
-          {view==='client_tariffs'&&<GreenBtn onClick={()=>{setEditClientTariff(null);setShowClientTariffModal(true)}}>+ Nueva Tarifa</GreenBtn>}
         </div>
       </div>
       <div style={{padding:'20px 22px',flex:1}}>
@@ -2216,18 +1613,17 @@ function CRMApp(){
         {loading?<Loader/>:<>
           {view==='dashboard'&&<DashboardView leads={fLeads} accounts={fAccounts} prospects={fProspects} activities={activities}/>}
           {view==='pipeline'&&<PipelineView leads={fLeads} activities={activities} onMoveStage={moveLead} onSelect={l=>setDetailLead(l)} onConfirmLoss={setLossLead}/>}
-          {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead} onViewDetail={l=>setDetailLead(l)} onPricing={l=>setPricingLead(l)}/>}
+          {view==='leads'&&<LeadsView leads={fLeads} activities={activities} accounts={fAccounts} onEdit={l=>{setEditLead(l);setShowLeadModal(true)}} onActivity={l=>setActivityLead(l)} onBPM={l=>setBpmEntity(l)} onConvert={convertToAccount} onConfirmLoss={setLossLead} onDelete={deleteLead} onViewDetail={l=>setDetailLead(l)}/>}
           {view==='prospects'&&<ProspectsView prospects={fProspects} onEdit={p=>{setEditProspect(p);setShowProspectModal(true)}} onConvert={convertProspectToLead}/>}
           {view==='accounts'&&<AccountsView accounts={fAccounts} onBPM={setBpmEntity} onFicha={setFichaAccount}/>}
           {view==='activities'&&<ActivitiesView activities={activities} leads={fLeads} onEdit={(act,lead)=>{setEditActivityData({act,lead});setActivityLead(lead)}} onToggleDone={toggleActivityDone}/>}
-          {view==='pricing'&&<PricingApprovalsView leads={fLeads} isRegional={isRegional} profile={profile} onOpenPricing={l=>{setPricingLead(l)}}/>}
-          {view==='client_tariffs'&&<ClientTariffsView tariffs={countryFilter(clientTariffs)} isRegional={isRegional} onEdit={t=>{setEditClientTariff(t);setShowClientTariffModal(true)}} onDelete={deleteClientTariff} onNew={()=>{setEditClientTariff(null);setShowClientTariffModal(true)}}/>}
           {view==='products'&&<ProductsView products={fProducts} isRegional={isRegional} canEdit={isRegional||profile?.role==='ejecutivo'} userCountry={userCountry} onSave={saveProduct} onDelete={deleteProduct}/>}
           {view==='reports'&&<ReportsView leads={fLeads} accounts={fAccounts}/>}
         </>}
       </div>
     </main>
 
+    {showBulkPeru&&<BulkPeruModal onClose={()=>{setShowBulkPeru(false);fetchAll()}} onImport={handleImport}/>}
     {showQuickLead&&<QuickLeadModal onClose={()=>setShowQuickLead(false)} onSave={saveLead} defaultCountry={!isRegional?userCountry:undefined}/>}
     {showLeadModal&&<LeadModal lead={editLead} onClose={()=>{setShowLeadModal(false);setEditLead(null)}} onSave={saveLead} defaultCountry={!isRegional?userCountry:undefined}/>}
     {detailLead&&<LeadDetailModal lead={detailLead} onClose={()=>setDetailLead(null)} onEdit={l=>{setDetailLead(null);setEditLead(l);setShowLeadModal(true)}} activities={activities}/>}
@@ -2237,8 +1633,6 @@ function CRMApp(){
     {activityLead&&<ActivityModal lead={activityLead} activity={editActivityData?.act||null} onClose={()=>{setActivityLead(null);setEditActivityData(null)}} onSave={saveActivity}/>}
     {showDailyAlert&&<DailyAlertModal activities={activities} leads={leads} onClose={()=>{setShowDailyAlert(false);setDailyAlertDismissed(true)}} onGo={()=>{setShowDailyAlert(false);setDailyAlertDismissed(true);setView('activities')}}/>}
     {lossLead&&<LossModal lead={lossLead} onClose={()=>setLossLead(null)} onConfirm={reason=>confirmLoss(lossLead,reason)}/>}
-    {pricingLead&&<PricingApprovalModal lead={pricingLead} onClose={()=>setPricingLead(null)} onSave={data=>savePricingProposal(pricingLead,data)} isRegional={isRegional} profile={profile}/>}
-    {showClientTariffModal&&<ClientTariffModal tariff={editClientTariff} onClose={()=>{setShowClientTariffModal(false);setEditClientTariff(null)}} onSave={saveClientTariff}/>}
     {showImport&&<ImportModal onClose={()=>{setShowImport(false);fetchAll()}} onImport={handleImport} defaultCountry={!isRegional?userCountry:'Chile'}/>}
     {showImportProspects&&<ImportProspectsModal onClose={()=>{setShowImportProspects(false);fetchAll()}} onImport={handleImportProspects} defaultCountry={!isRegional?userCountry:'Chile'}/>}
     {toast&&<div style={{position:'fixed',bottom:22,right:22,background:toast.type==='success'?'#5CBB00':'#EF4444',color:'white',padding:'11px 18px',borderRadius:10,fontSize:13,fontWeight:600,boxShadow:'0 8px 32px rgba(0,0,0,0.4)',zIndex:9999,animation:'slideIn 0.3s ease'}}>{toast.msg}</div>}
